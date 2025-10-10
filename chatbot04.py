@@ -57,7 +57,6 @@ with chat_col:
 
     with col_rec:
         if st.button("🎤"):
-            duration = 5  # record duration in seconds
             fs = 16000
             recording = sd.rec(int(duration * fs), samplerate=fs, channels=1, dtype='int16')
             sd.wait()
