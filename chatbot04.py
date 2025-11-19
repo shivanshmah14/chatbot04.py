@@ -58,12 +58,26 @@ st.markdown("""
     }
     
     section[data-testid="stSidebar"] {
-        background-color: #f7f7f8 !important;
+        background-color: #ffffff !important;
     }
     
     .main .block-container {
         background-color: #ffffff !important;
     }
+    
+    /* Fix markdown text in sidebar */
+    [data-testid="stSidebar"] .stMarkdown,
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] span {
+        color: #202124 !important;
+    }
+    
+    /* Fix caption text */
+    [data-testid="stSidebar"] .stCaption {
+        color: #6b7280 !important;
+    }
+    
     /* Hide Streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
@@ -196,35 +210,63 @@ st.markdown("""
     
     /* Sidebar styling */
     [data-testid="stSidebar"] {
-        background-color: #f7f7f8;
+        background-color: #ffffff !important;
         padding: 1rem 0.5rem;
+        border-right: 1px solid #e5e7eb;
     }
     
     [data-testid="stSidebar"] > div:first-child {
         padding-top: 1rem;
     }
     
+    [data-testid="stSidebar"] * {
+        color: #202124 !important;
+    }
+    
     /* Buttons */
     .stButton > button {
         border-radius: 8px;
-        border: 1px solid #e5e7eb;
-        background-color: white;
-        color: #202124;
+        border: 1px solid #d1d5db !important;
+        background-color: #ffffff !important;
+        color: #202124 !important;
         font-weight: 500;
         transition: all 0.2s;
     }
     
     .stButton > button:hover {
-        background-color: #f7f7f8;
-        border-color: #d1d5db;
+        background-color: #f3f4f6 !important;
+        border-color: #9ca3af !important;
+    }
+    
+    /* Primary button (New Chat) */
+    .stButton > button[kind="primary"] {
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+        border: 1px solid #2563eb !important;
+    }
+    
+    .stButton > button[kind="primary"]:hover {
+        background-color: #1d4ed8 !important;
+        border-color: #1d4ed8 !important;
     }
     
     /* Search box */
     .stTextInput > div > div > input {
         border-radius: 8px;
-        border: 1px solid #e5e7eb;
+        border: 1px solid #d1d5db !important;
         padding: 0.5rem 0.75rem;
         font-size: 0.9rem;
+        background-color: #ffffff !important;
+        color: #202124 !important;
+    }
+    
+    .stTextInput > div > div > input:focus {
+        border-color: #2563eb !important;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1) !important;
+    }
+    
+    .stTextInput > div > div > input::placeholder {
+        color: #9ca3af !important;
     }
     
     /* Input area */
