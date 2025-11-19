@@ -28,9 +28,42 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS - ChatGPT Style + Mobile Responsive
+# Force light mode
+st.markdown("""
+    <script>
+        window.parent.document.querySelector('body').setAttribute('data-theme', 'light');
+    </script>
+""", unsafe_allow_html=True)
+
+# Custom CSS - ChatGPT Style + Mobile Responsive + FORCE LIGHT MODE
 st.markdown("""
     <style>
+    /* FORCE LIGHT MODE - OVERRIDE DARK MODE */
+    [data-testid="stAppViewContainer"],
+    [data-testid="stHeader"],
+    .main,
+    [data-testid="stSidebar"] {
+        background-color: #ffffff !important;
+        color: #202124 !important;
+    }
+    
+    /* Force all text to be dark */
+    * {
+        color: #202124 !important;
+    }
+    
+    /* Override dark mode backgrounds */
+    .stApp {
+        background-color: #ffffff !important;
+    }
+    
+    section[data-testid="stSidebar"] {
+        background-color: #f7f7f8 !important;
+    }
+    
+    .main .block-container {
+        background-color: #ffffff !important;
+    }
     /* Hide Streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
@@ -118,15 +151,19 @@ st.markdown("""
         margin-bottom: 2rem;
     }
     
-    /* Chat messages */
+    /* Chat messages - light mode colors */
     .stChatMessage {
-        background-color: transparent !important;
+        background-color: #ffffff !important;
         border: none !important;
         padding: 1.5rem 0 !important;
     }
     
     .stChatMessage[data-testid="chat-message-user"] {
         background-color: #f7f7f8 !important;
+    }
+    
+    .stChatMessage[data-testid="chat-message-assistant"] {
+        background-color: #ffffff !important;
     }
     
     .stChatMessage * {
@@ -190,11 +227,17 @@ st.markdown("""
         font-size: 0.9rem;
     }
     
-    /* Chat input */
+    /* Input area */
     .stChatInputContainer {
         border: 1px solid #d1d5db;
         border-radius: 24px;
         padding: 0.5rem 1rem;
+        background-color: #ffffff !important;
+    }
+    
+    .stChatInputContainer input {
+        background-color: #ffffff !important;
+        color: #202124 !important;
     }
     
     /* Audio player styling */
