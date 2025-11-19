@@ -28,54 +28,82 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Force light mode
-st.markdown("""
-    <script>
-        window.parent.document.querySelector('body').setAttribute('data-theme', 'light');
-    </script>
-""", unsafe_allow_html=True)
-
-# Custom CSS - ChatGPT Style + Mobile Responsive + FORCE LIGHT MODE
+# Custom CSS - BLACK THEME WITH WHITE TEXT
 st.markdown("""
     <style>
-    /* FORCE LIGHT MODE - OVERRIDE DARK MODE */
+    /* FORCE ALL BLACK BACKGROUNDS */
     [data-testid="stAppViewContainer"],
     [data-testid="stHeader"],
     .main,
-    [data-testid="stSidebar"] {
-        background-color: #ffffff !important;
-        color: #202124 !important;
-    }
-    
-    /* Force all text to be dark */
-    * {
-        color: #202124 !important;
-    }
-    
-    /* Override dark mode backgrounds */
-    .stApp {
-        background-color: #ffffff !important;
-    }
-    
-    section[data-testid="stSidebar"] {
-        background-color: #ffffff !important;
-    }
-    
+    [data-testid="stSidebar"],
+    .stApp,
+    section[data-testid="stSidebar"],
     .main .block-container {
-        background-color: #ffffff !important;
+        background-color: #000000 !important;
     }
     
-    /* Fix markdown text in sidebar */
+    /* ALL TEXT WHITE */
+    *,
+    [data-testid="stSidebar"],
+    [data-testid="stSidebar"] *,
     [data-testid="stSidebar"] .stMarkdown,
     [data-testid="stSidebar"] h3,
     [data-testid="stSidebar"] p,
-    [data-testid="stSidebar"] span {
-        color: #202124 !important;
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] div,
+    .stMarkdown,
+    .stMarkdown *,
+    h1, h2, h3, h4, h5, h6,
+    p, span, div, label {
+        color: #ffffff !important;
     }
     
-    /* Fix caption text */
-    [data-testid="stSidebar"] .stCaption {
-        color: #6b7280 !important;
+    /* Button - BLACK with WHITE text */
+    .stButton > button,
+    .stButton > button * {
+        color: #ffffff !important;
+        background-color: #000000 !important;
+        border: 1px solid #ffffff !important;
+    }
+    
+    .stButton > button:hover {
+        background-color: #1a1a1a !important;
+    }
+    
+    /* Primary button - Blue with white text */
+    .stButton > button[kind="primary"],
+    .stButton > button[data-testid="baseButton-primary"] {
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+        border: 1px solid #2563eb !important;
+    }
+    
+    .stButton > button[kind="primary"]:hover,
+    .stButton > button[data-testid="baseButton-primary"]:hover {
+        background-color: #1d4ed8 !important;
+    }
+    
+    /* Search input - BLACK with WHITE text */
+    .stTextInput > div > div > input {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 1px solid #ffffff !important;
+        border-radius: 8px !important;
+        padding: 0.5rem 0.75rem !important;
+    }
+    
+    .stTextInput > div > div > input::placeholder {
+        color: #999999 !important;
+    }
+    
+    .stTextInput > div > div > input:focus {
+        border-color: #2563eb !important;
+        outline: none !important;
+    }
+    
+    /* Text input label WHITE */
+    .stTextInput label {
+        color: #ffffff !important;
     }
     
     /* Hide Streamlit branding */
@@ -83,12 +111,12 @@ st.markdown("""
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    /* COMPLETELY HIDE ALL FILE UPLOADER TEXT AND UI */
+    /* HIDE FILE UPLOADER UI - Show only button */
     div[data-testid="stFileUploader"] > div > div,
     div[data-testid="stFileUploader"] > div > div > div,
     div[data-testid="stFileUploader"] > div > div > div > div,
     div[data-testid="stFileUploader"] > div > div > div > small,
-    div[data-testid="stFileUploader"] span,
+    div[data-testid="stFileUploader"] span:not(label span),
     div[data-testid="stFileUploader"] small,
     section[data-testid="stFileUploadDropzone"],
     section[data-testid="stFileUploadDropzone"] *,
@@ -102,7 +130,7 @@ st.markdown("""
         margin: 0 !important;
     }
     
-    /* Show ONLY the label (button) */
+    /* File uploader container */
     div[data-testid="stFileUploader"] {
         background: transparent !important;
         border: none !important;
@@ -119,36 +147,30 @@ st.markdown("""
         height: 40px !important;
     }
     
-    /* Style the file uploader button label */
+    /* File uploader button - BLACK with WHITE border */
     div[data-testid="stFileUploader"] label {
         display: inline-flex !important;
         visibility: visible !important;
-        align-items: center;
-        justify-content: center;
+        align-items: center !important;
+        justify-content: center !important;
         width: 40px !important;
         height: 40px !important;
         border-radius: 50% !important;
-        border: 1px solid #d1d5db !important;
-        background-color: white !important;
+        border: 1px solid #ffffff !important;
+        background-color: #000000 !important;
         cursor: pointer !important;
         transition: all 0.2s !important;
         font-size: 20px !important;
-        color: #202124 !important;
+        color: #ffffff !important;
         padding: 0 !important;
         margin: 0 !important;
     }
     
     div[data-testid="stFileUploader"] label:hover {
-        background-color: #f3f4f6 !important;
-        border-color: #9ca3af !important;
+        background-color: #1a1a1a !important;
     }
     
-    /* Main container */
-    .main > div {
-        padding-top: 2rem;
-    }
-    
-    /* Welcome message */
+    /* Welcome message - WHITE */
     .welcome-container {
         display: flex;
         flex-direction: column;
@@ -161,132 +183,112 @@ st.markdown("""
     .welcome-title {
         font-size: 2.5rem;
         font-weight: 600;
-        color: #202124;
+        color: #ffffff !important;
         margin-bottom: 2rem;
     }
     
-    /* Chat messages - light mode colors */
+    /* Chat messages - BLACK background WHITE text */
     .stChatMessage {
-        background-color: #ffffff !important;
+        background-color: #000000 !important;
         border: none !important;
         padding: 1.5rem 0 !important;
     }
     
     .stChatMessage[data-testid="chat-message-user"] {
-        background-color: #f7f7f8 !important;
+        background-color: #0a0a0a !important;
     }
     
     .stChatMessage[data-testid="chat-message-assistant"] {
-        background-color: #ffffff !important;
+        background-color: #000000 !important;
     }
     
     .stChatMessage * {
-        color: #202124 !important;
+        color: #ffffff !important;
     }
     
-    /* Adjust main content padding */
+    /* Main content padding */
     .main-content {
         padding-bottom: 200px;
     }
     
-    /* Branding footer */
+    /* Branding footer - WHITE text */
     .branding-footer {
         text-align: center;
         padding: 0.5rem 0;
-        color: #6b7280;
+        color: #ffffff !important;
         font-size: 0.875rem;
         font-weight: 500;
     }
     
     .branding-footer strong {
-        color: #1f77b4;
+        color: #2563eb !important;
         font-weight: 600;
     }
     
-    /* File upload button */
-    .custom-upload-btn {
-        display: none !important;
-    }
-    
-    /* Sidebar styling */
-    [data-testid="stSidebar"] {
-        background-color: #ffffff !important;
-        padding: 1rem 0.5rem;
-        border-right: 1px solid #e5e7eb;
-    }
-    
-    [data-testid="stSidebar"] > div:first-child {
-        padding-top: 1rem;
-    }
-    
-    [data-testid="stSidebar"] * {
-        color: #202124 !important;
-    }
-    
-    /* Buttons */
-    .stButton > button {
-        border-radius: 8px;
-        border: 1px solid #d1d5db !important;
-        background-color: #ffffff !important;
-        color: #202124 !important;
-        font-weight: 500;
-        transition: all 0.2s;
-    }
-    
-    .stButton > button:hover {
-        background-color: #f3f4f6 !important;
-        border-color: #9ca3af !important;
-    }
-    
-    /* Primary button (New Chat) */
-    .stButton > button[kind="primary"] {
-        background-color: #2563eb !important;
-        color: #ffffff !important;
-        border: 1px solid #2563eb !important;
-    }
-    
-    .stButton > button[kind="primary"]:hover {
-        background-color: #1d4ed8 !important;
-        border-color: #1d4ed8 !important;
-    }
-    
-    /* Search box */
-    .stTextInput > div > div > input {
-        border-radius: 8px;
-        border: 1px solid #d1d5db !important;
-        padding: 0.5rem 0.75rem;
-        font-size: 0.9rem;
-        background-color: #ffffff !important;
-        color: #202124 !important;
-    }
-    
-    .stTextInput > div > div > input:focus {
-        border-color: #2563eb !important;
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1) !important;
-    }
-    
-    .stTextInput > div > div > input::placeholder {
-        color: #9ca3af !important;
-    }
-    
-    /* Input area */
+    /* Chat input - BLACK with WHITE text */
     .stChatInputContainer {
-        border: 1px solid #d1d5db;
-        border-radius: 24px;
-        padding: 0.5rem 1rem;
-        background-color: #ffffff !important;
+        border: 1px solid #ffffff !important;
+        border-radius: 24px !important;
+        padding: 0.5rem 1rem !important;
+        background-color: #000000 !important;
     }
     
     .stChatInputContainer input {
-        background-color: #ffffff !important;
-        color: #202124 !important;
+        background-color: #000000 !important;
+        color: #ffffff !important;
     }
     
-    /* Audio player styling */
+    .stChatInputContainer input::placeholder {
+        color: #999999 !important;
+    }
+    
+    /* Expander - BLACK with WHITE text */
+    .streamlit-expanderHeader {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 1px solid #ffffff !important;
+    }
+    
+    .streamlit-expanderContent {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+    
+    /* Caption text - light gray */
+    .stCaption,
+    [data-testid="stSidebar"] .stCaption {
+        color: #999999 !important;
+    }
+    
+    /* Audio player */
     audio {
         width: 100%;
         height: 40px;
         margin-top: 1rem;
+    }
+    
+    /* Dividers - white */
+    hr {
+        border-color: #ffffff !important;
+    }
+    
+    /* Sidebar border */
+    section[data-testid="stSidebar"] {
+        border-right: 1px solid #ffffff !important;
+    }
+    
+    /* Toast notifications - BLACK with WHITE text */
+    .stToast {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 1px solid #ffffff !important;
+    }
+    
+    /* Warning messages - BLACK with WHITE text */
+    .stAlert {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 1px solid #ffffff !important;
     }
     
     /* Mobile responsiveness */
@@ -312,14 +314,7 @@ st.markdown("""
         .welcome-title {
             font-size: 1.5rem;
         }
-        
-        .custom-upload-btn {
-            width: 35px;
-            height: 35px;
-            font-size: 18px;
-        }
     }
-    
     </style>
 """, unsafe_allow_html=True)
 
@@ -345,7 +340,7 @@ if "current_session_id" not in st.session_state:
         "created": datetime.now().strftime("%Y-%m-%d %H:%M")
     }
 if "voice_enabled" not in st.session_state:
-    st.session_state.voice_enabled = True  # Always enabled by default
+    st.session_state.voice_enabled = True
 if "search_query" not in st.session_state:
     st.session_state.search_query = ""
 if "last_processed_files" not in st.session_state:
@@ -388,7 +383,7 @@ def extract_file_content(file_bytes, filename):
         return f"❌ Error reading {filename}: {str(e)}"
 
 def speak_text(text):
-    """Generate TTS audio for the response - ALWAYS ENABLED"""
+    """Generate TTS audio for the response"""
     if not TTS_AVAILABLE:
         return None
     
@@ -515,7 +510,6 @@ else:
             continue
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
-            # Show audio player if this is an assistant message and voice is enabled
             if msg["role"] == "assistant" and "audio_file" in msg and msg["audio_file"]:
                 st.audio(msg["audio_file"], format="audio/mp3")
 
@@ -541,7 +535,6 @@ with input_col1:
     if PDF_SUPPORT:
         supported_types.insert(0, 'pdf')
     
-    # Create a clickable + button that triggers file upload
     uploaded_files = st.file_uploader(
         "➕",
         type=supported_types,
@@ -633,7 +626,6 @@ if user_message:
         
         placeholder.markdown(response_text)
         
-        # Generate voice
         audio_file = speak_text(response_text) if TTS_AVAILABLE else None
         
         current_session["messages"].append({
@@ -642,7 +634,6 @@ if user_message:
             "audio_file": audio_file
         })
         
-        # Show audio player
         if audio_file:
             st.audio(audio_file, format="audio/mp3")
         
