@@ -83,10 +83,10 @@ st.markdown("""
         background-color: #1d4ed8 !important;
     }
     
-    /* Search input - BLACK with WHITE text */
+    /* Search input - White with Black text */
     .stTextInput > div > div > input {
-        background-color: #000000 !important;
-        color: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
         border: 1px solid #ffffff !important;
         border-radius: 8px !important;
         padding: 0.5rem 0.75rem !important;
@@ -638,3 +638,4 @@ if user_message:
             st.audio(audio_file, format="audio/mp3")
         
         st.rerun()
+
