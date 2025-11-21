@@ -95,11 +95,34 @@ st.markdown("""
         border-color: #1d4ed8 !important;
     }
     
-    /* Search input - White with Black text */
-    .stTextInput > div > div > input {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        border: 1px solid #ffffff !important;
+    .stButton > button[kind="primary"] p,
+    .stButton > button[kind="primary"] span {
+        color: #ffffff !important;
+    }
+    
+    /* SECONDARY BUTTON - FIXED FOR CHAT LIST */
+    .stButton > button[kind="secondary"] {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+        border: 1px solid #333333 !important;
+    }
+    
+    .stButton > button[kind="secondary"]:hover {
+        background-color: #2a2a2a !important;
+        border-color: #555555 !important;
+    }
+    
+    .stButton > button[kind="secondary"] p,
+    .stButton > button[kind="secondary"] span {
+        color: #ffffff !important;
+    }
+    
+    /* TEXT INPUTS - DARK WITH WHITE TEXT */
+    .stTextInput > div > div > input,
+    .stTextInput input {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+        border: 1px solid #444444 !important;
         border-radius: 8px !important;
         padding: 0.5rem 0.75rem !important;
     }
@@ -954,5 +977,57 @@ else:
                 files_context += "\n"
             files_context += "=== END FILES ===\n\n"
         
-        st.rerun()
-
+        with st.chat_message("assistant"):
+            placeholder = st.empty()
+            placeholder.markdown("🤔 Thinking...")
+            
+            try:
+                messages_for_api = [{"role": "system", "content": SYSTEM_PROMPT}]
+                user_content = files_context + user_message if files_context else user_message
+                
+                for m in current_session["messages"][1:]:
+                    if m["role"] == "user" and m["content"] == user_message:
+                        messages_for_api.append({"role": "user", "content": user_content})
+                    else:
+                        messages_for_api.append({"role": m["role"], "content": m["content"]})
+                
+                payload = {"model": MODEL, "messages": messages_for_api}
+                headers = {
+                    "Authorization": f"Bearer {API_KEY}", 
+                    "Content-Type": "application/json"
+                }
+                url = "https://api.sarvam.ai/v1/chat/completions"
+                
+                resp = requests.post(url, headers=headers, json=payload, timeout=60)
+                
+                if resp.status_code != 200:
+                    response_text = f"⚠️ API Error {resp.status_code}\n\n{resp.text[:500]}"
+                else:
+                    data = resp.json()
+                    response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response.")
+            
+            except requests.exceptions.Timeout:
+                response_text = "⏱️ Request timeout. Please try again."
+            except requests.exceptions.RequestException as e:
+                response_text = f"🌐 Connection error: {str(e)}"
+            except Exception as e:
+                response_text = f"❌ Error: {str(e)}"
+            
+            placeholder.markdown(response_text)
+            
+            audio_file = speak_text(response_text) if TTS_AVAILABLE else None
+            
+            current_session["messages"].append({
+                "role": "assistant", 
+                "content": response_text,
+                "audio_file": audio_file
+            })
+            
+            if audio_file:
+                st.audio(audio_file, format="audio/mp3")
+            
+            # Save updated chat sessions
+            if st.session_state.current_user:
+                st.session_state.users[st.session_state.current_user]["chat_sessions"] = st.session_state.chat_sessions
+            
+            st.rerun()
