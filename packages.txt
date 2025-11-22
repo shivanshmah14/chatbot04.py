@@ -2,3 +2,7 @@ portaudio19-dev
 libasound-dev
 build-essential
 python3-pyaudio
+tesseract-ocr
+tesseract-ocr-eng
+libtesseract-dev
+libleptonica-dev
