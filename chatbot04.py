@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 import io
+import pickle
 
 # Optional imports
 try:
@@ -233,20 +234,113 @@ SYSTEM_PROMPT = (
     "Be professional, clear, and comprehensive in your answers."
 )
 
+# Storage directory for persistent data
+STORAGE_DIR = Path("shiva_ai_data")
+STORAGE_DIR.mkdir(exist_ok=True)
+
 # ----------------------
-# Session State Initialization
+# Helper Functions for User Management
 # ----------------------
+def get_user_id():
+    """Get or create a unique user ID for this browser/device"""
+    if "user_id" not in st.session_state:
+        # Check if user has a stored ID in browser cookies (via query params)
+        query_params = st.query_params
+        if "user_id" in query_params:
+            st.session_state.user_id = query_params["user_id"]
+        else:
+            # Create new user ID
+            st.session_state.user_id = str(uuid.uuid4())
+            # Store in URL for persistence across sessions
+            st.query_params["user_id"] = st.session_state.user_id
+    return st.session_state.user_id
+
+def get_user_sessions_file():
+    """Get the session file path for current user"""
+    user_id = get_user_id()
+    return STORAGE_DIR / f"user_{user_id}_sessions.pkl"
+
+# ----------------------
+# Helper Functions for Persistence (User-Specific)
+# ----------------------
+def save_sessions():
+    """Save all chat sessions to disk for current user"""
+    try:
+        sessions_file = get_user_sessions_file()
+        with open(sessions_file, 'wb') as f:
+            # Remove audio files before saving (they're temporary)
+            sessions_to_save = {}
+            for sid, sdata in st.session_state.chat_sessions.items():
+                sessions_to_save[sid] = {
+                    "messages": [{k: v for k, v in m.items() if k != "audio_file"} 
+                                for m in sdata["messages"]],
+                    "files": sdata["files"],
+                    "title": sdata["title"],
+                    "created": sdata["created"]
+                }
+            pickle.dump(sessions_to_save, f)
+    except Exception as e:
+        st.error(f"Error saving sessions: {e}")
+
+def load_sessions():
+    """Load chat sessions from disk for current user"""
+    try:
+        sessions_file = get_user_sessions_file()
+        if sessions_file.exists():
+            with open(sessions_file, 'rb') as f:
+                return pickle.load(f)
+    except Exception as e:
+        st.error(f"Error loading sessions: {e}")
+    return None
+
+# ----------------------
+# Session State Initialization with Persistence
+# ----------------------
+# Initialize user ID first
+get_user_id()
+
 if "chat_sessions" not in st.session_state:
-    st.session_state.chat_sessions = {}
+    # Try to load existing sessions for this user
+    loaded_sessions = load_sessions()
+    
+    if loaded_sessions and len(loaded_sessions) > 0:
+        st.session_state.chat_sessions = loaded_sessions
+        # Set current session to the most recent one
+        try:
+            sorted_ids = sorted(
+                loaded_sessions.keys(),
+                key=lambda x: loaded_sessions[x].get("created", ""),
+                reverse=True
+            )
+            st.session_state.current_session_id = sorted_ids[0]
+        except:
+            st.session_state.current_session_id = list(loaded_sessions.keys())[0]
+    else:
+        # Create first session if no saved data
+        st.session_state.chat_sessions = {}
+        new_session_id = str(uuid.uuid4())
+        st.session_state.current_session_id = new_session_id
+        st.session_state.chat_sessions[new_session_id] = {
+            "messages": [{"role": "system", "content": SYSTEM_PROMPT}],
+            "files": [],
+            "title": "New Chat",
+            "created": datetime.now().strftime("%Y-%m-%d %H:%M")
+        }
+        save_sessions()
 
 if "current_session_id" not in st.session_state:
-    st.session_state.current_session_id = str(uuid.uuid4())
-    st.session_state.chat_sessions[st.session_state.current_session_id] = {
-        "messages": [{"role": "system", "content": SYSTEM_PROMPT}],
-        "files": [],
-        "title": "New Chat",
-        "created": datetime.now().strftime("%Y-%m-%d %H:%M")
-    }
+    if st.session_state.chat_sessions:
+        st.session_state.current_session_id = list(st.session_state.chat_sessions.keys())[0]
+    else:
+        new_session_id = str(uuid.uuid4())
+        st.session_state.current_session_id = new_session_id
+        st.session_state.chat_sessions[new_session_id] = {
+            "messages": [{"role": "system", "content": SYSTEM_PROMPT}],
+            "files": [],
+            "title": "New Chat",
+            "created": datetime.now().strftime("%Y-%m-%d %H:%M")
+        }
+        save_sessions()
 
 if "last_processed_files" not in st.session_state:
     st.session_state.last_processed_files = []
@@ -260,62 +354,91 @@ def extract_text_from_pdf(file_bytes):
         pdf = PyPDF2.PdfReader(io.BytesIO(file_bytes))
         text = []
         for page in pdf.pages:
-            text.append(page.extract_text())
-        return "\n".join(text)
+            page_text = page.extract_text()
+            if page_text.strip():
+                text.append(page_text)
+        result = "\n".join(text)
+        return result if result.strip() else "PDF appears to be empty or contains only images."
     except Exception as e:
-        return f"Error reading PDF: {e}"
+        return f"Unable to extract text from PDF: {str(e)}"
 
 def extract_text_from_docx(file_bytes):
     """Extract text from Word document"""
     try:
         doc = Document(io.BytesIO(file_bytes))
         text = []
+        
+        # Extract paragraphs
         for paragraph in doc.paragraphs:
-            text.append(paragraph.text)
-        # Also extract text from tables
+            if paragraph.text.strip():
+                text.append(paragraph.text)
+        
+        # Extract text from tables
         for table in doc.tables:
             for row in table.rows:
                 for cell in row.cells:
-                    text.append(cell.text)
-        return "\n".join(text)
+                    if cell.text.strip():
+                        text.append(cell.text)
+        
+        result = "\n".join(text)
+        return result if result.strip() else "Word document appears to be empty."
     except Exception as e:
-        return f"Error reading DOCX: {e}"
+        return f"Unable to extract text from Word document: {str(e)}"
 
 def extract_text_from_pptx(file_bytes):
     """Extract text from PowerPoint"""
     try:
         prs = Presentation(io.BytesIO(file_bytes))
         text = []
+        
         for slide_num, slide in enumerate(prs.slides, 1):
-            text.append(f"\n--- Slide {slide_num} ---")
+            slide_text = []
             for shape in slide.shapes:
-                if hasattr(shape, "text"):
-                    text.append(shape.text)
-        return "\n".join(text)
+                if hasattr(shape, "text") and shape.text.strip():
+                    slide_text.append(shape.text)
+            
+            if slide_text:
+                text.append(f"--- Slide {slide_num} ---")
+                text.extend(slide_text)
+        
+        result = "\n".join(text)
+        return result if result.strip() else "PowerPoint appears to be empty or contains only images."
     except Exception as e:
-        return f"Error reading PPTX: {e}"
+        return f"Unable to extract text from PowerPoint: {str(e)}"
 
 def extract_text_from_excel(file_bytes):
     """Extract text from Excel"""
     try:
-        # Try reading with pandas
         df_dict = pd.read_excel(io.BytesIO(file_bytes), sheet_name=None)
         text = []
+        
         for sheet_name, df in df_dict.items():
-            text.append(f"\n--- Sheet: {sheet_name} ---")
-            text.append(df.to_string())
-        return "\n".join(text)
+            if not df.empty:
+                text.append(f"\n--- Sheet: {sheet_name} ---")
+                text.append(df.to_string(index=False))
+        
+        result = "\n".join(text)
+        return result if result.strip() else "Excel file appears to be empty."
     except Exception as e:
-        return f"Error reading Excel: {e}"
+        return f"Unable to extract data from Excel: {str(e)}"
 
 def extract_text_from_image(file_bytes):
     """Extract text from image using OCR"""
     try:
         image = Image.open(io.BytesIO(file_bytes))
-        text = pytesseract.image_to_string(image)
-        return text if text.strip() else "No text detected in image"
+        
+        # Try OCR if available
+        if OCR_SUPPORT:
+            text = pytesseract.image_to_string(image)
+            if text.strip():
+                return f"[Image uploaded - Text extracted via OCR]\n{text}"
+            else:
+                return "[Image uploaded - No readable text detected in image]"
+        else:
+            # Just acknowledge the image
+            return f"[Image uploaded: {image.format} format, {image.size[0]}x{image.size[1]} pixels. OCR not available - install pytesseract to extract text from images]"
     except Exception as e:
-        return f"Image uploaded (OCR not available): {e}"
+        return f"[Image uploaded but could not be processed: {str(e)}]"
 
 @st.cache_data
 def extract_file_content(file_bytes, filename):
@@ -324,46 +447,65 @@ def extract_file_content(file_bytes, filename):
     
     try:
         # PDF files
-        if ext == '.pdf' and PDF_SUPPORT:
-            return extract_text_from_pdf(file_bytes)
+        if ext == '.pdf':
+            if PDF_SUPPORT:
+                return extract_text_from_pdf(file_bytes)
+            else:
+                return f"[PDF file uploaded: {filename}. Install PyPDF2 to extract content]"
         
         # Word documents
-        elif ext in ['.docx', '.doc'] and DOCX_SUPPORT:
-            return extract_text_from_docx(file_bytes)
+        elif ext in ['.docx', '.doc']:
+            if DOCX_SUPPORT:
+                return extract_text_from_docx(file_bytes)
+            else:
+                return f"[Word document uploaded: {filename}. Install python-docx to extract content]"
         
         # PowerPoint presentations
-        elif ext in ['.pptx', '.ppt'] and PPTX_SUPPORT:
-            return extract_text_from_pptx(file_bytes)
+        elif ext in ['.pptx', '.ppt']:
+            if PPTX_SUPPORT:
+                return extract_text_from_pptx(file_bytes)
+            else:
+                return f"[PowerPoint uploaded: {filename}. Install python-pptx to extract content]"
         
         # Excel files
-        elif ext in ['.xlsx', '.xls'] and EXCEL_SUPPORT:
-            return extract_text_from_excel(file_bytes)
+        elif ext in ['.xlsx', '.xls']:
+            if EXCEL_SUPPORT:
+                return extract_text_from_excel(file_bytes)
+            else:
+                return f"[Excel file uploaded: {filename}. Install openpyxl and pandas to extract content]"
         
         # Image files
-        elif ext in ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff'] and OCR_SUPPORT:
+        elif ext in ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff']:
             return extract_text_from_image(file_bytes)
         
         # Text-based files
         elif ext == '.txt':
-            return file_bytes.decode('utf-8')
+            return file_bytes.decode('utf-8', errors='ignore')
         
         # JSON files
         elif ext == '.json':
-            return json.dumps(json.loads(file_bytes.decode('utf-8')), indent=2)
+            try:
+                return json.dumps(json.loads(file_bytes.decode('utf-8')), indent=2)
+            except:
+                return file_bytes.decode('utf-8', errors='ignore')
         
         # Code and markup files
-        elif ext in ['.csv', '.py', '.md', '.html', '.css', '.js', '.xml', '.yaml', '.yml']:
-            return file_bytes.decode('utf-8')
+        elif ext in ['.csv', '.py', '.md', '.html', '.css', '.js', '.xml', '.yaml', '.yml', '.java', '.cpp', '.c']:
+            return file_bytes.decode('utf-8', errors='ignore')
         
         # Try to decode as text for any other file
         else:
             try:
-                return file_bytes.decode('utf-8', errors='ignore')
+                decoded = file_bytes.decode('utf-8', errors='ignore')
+                if decoded.strip():
+                    return decoded
+                else:
+                    return f"[Binary file uploaded: {filename} ({format_file_size(len(file_bytes))})]"
             except:
-                return f"Binary file uploaded: {filename} ({format_file_size(len(file_bytes))})"
+                return f"[Binary file uploaded: {filename} ({format_file_size(len(file_bytes))})]"
     
     except Exception as e:
-        return f"Error reading {filename}: {str(e)}"
+        return f"[File uploaded: {filename}, but encountered error during processing: {str(e)}]"
 
 def format_file_size(size_bytes):
     """Format file size in human-readable format"""
@@ -404,6 +546,7 @@ def create_new_chat():
     }
     st.session_state.current_session_id = new_id
     st.session_state.last_processed_files = []
+    save_sessions()  # Save after creating new chat
 
 def delete_chat(session_id):
     """Delete a chat session if not the last one"""
@@ -411,6 +554,7 @@ def delete_chat(session_id):
         del st.session_state.chat_sessions[session_id]
         if session_id == st.session_state.current_session_id:
             st.session_state.current_session_id = list(st.session_state.chat_sessions.keys())[0]
+        save_sessions()  # Save after deleting
         return True
     return False
 
@@ -418,6 +562,7 @@ def remove_file(filename):
     """Remove a file from the current session"""
     current_session = get_current_session()
     current_session["files"] = [f for f in current_session["files"] if f['filename'] != filename]
+    save_sessions()  # Save after removing file
 
 def get_file_icon(ext):
     """Get appropriate icon for file type"""
@@ -553,6 +698,7 @@ if uploaded_files:
                         'icon': get_file_icon(Path(uploaded_file.name).suffix)
                     })
         
+        save_sessions()  # Save after processing files
         st.toast(f"✅ {len(uploaded_files)} file(s) processed and attached!", icon="✅")
         st.rerun()
 
@@ -605,6 +751,8 @@ if user_message:
         current_session["title"] = generate_chat_title(user_message)
     
     current_session["messages"].append({"role": "user", "content": user_message})
+    save_sessions()  # Save after user message
+    
     with st.chat_message("user"):
         st.markdown(user_message)
     
@@ -663,6 +811,8 @@ if user_message:
             "content": response_text,
             "audio_file": audio_file
         })
+        save_sessions()  # Save after assistant response
+        
         if audio_file:
             st.audio(audio_file, format="audio/mp3")
         st.rerun()
@@ -677,4 +827,3 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True
 )
-
