@@ -1,6 +1,10 @@
 streamlit
-SpeechRecognition
-sounddevice
-wavio
-gtts
 requests
+gtts
+PyPDF2
+python-docx
+python-pptx
+openpyxl
+pandas
+Pillow
+pytesseract
