@@ -62,16 +62,30 @@ st.set_page_config(
 # ----------------------
 st.markdown("""
 <style>
-    /* Main background */
-    .stApp {
-        background-color: white;
+    /* Force light mode everywhere */
+    body, .stApp, .main, .block-container {
+        background-color: white !important;
+        color: black !important;
+    }
+    
+    /* Force all text inside components to black */
+    p, span, div, label, h1, h2, h3, h4, h5, h6 {
+        color: black !important;
+    }
+    
+    /* Force sidebar light background */
+    [data-testid="stSidebar"] {
+        background-color: #f8f9fa !important;
+    }
+    
+    /* Buttons and inputs */
+    .stButton>button, input, textarea {
+        background-color: white !important;
+        color: black !important;
+        border: 1px solid #ddd !important;
     }
     
     /* Sidebar styling */
-    [data-testid="stSidebar"] {
-        background-color: #f8f9fa;
-    }
-    
     [data-testid="stSidebar"] .stButton button {
         width: 100%;
         background-color: white;
@@ -120,11 +134,6 @@ st.markdown("""
         border-radius: 12px;
         padding: 15px;
         margin: 10px 0;
-    }
-    
-    /* All text black */
-    p, span, div, label {
-        color: black !important;
     }
     
     /* Chat input */
