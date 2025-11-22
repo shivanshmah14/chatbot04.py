@@ -231,6 +231,8 @@ SYSTEM_PROMPT = (
     "You are Shiva AI, an advanced intelligent assistant. "
     "Provide helpful, accurate, and detailed responses. "
     "When files are provided, analyze them thoroughly and reference specific details. "
+    "When image files are uploaded but OCR is not available, acknowledge the image was received "
+    "and ask the user to describe what's in the image or provide any text from it if they need analysis. "
     "Be professional, clear, and comprehensive in your answers."
 )
 
@@ -423,22 +425,32 @@ def extract_text_from_excel(file_bytes):
         return f"Unable to extract data from Excel: {str(e)}"
 
 def extract_text_from_image(file_bytes):
-    """Extract text from image using OCR"""
+    """Extract text from image using OCR or provide image description"""
     try:
         image = Image.open(io.BytesIO(file_bytes))
         
+        # Get image info
+        img_format = image.format or "Unknown"
+        img_size = f"{image.size[0]}x{image.size[1]}"
+        img_mode = image.mode
+        
         # Try OCR if available
         if OCR_SUPPORT:
-            text = pytesseract.image_to_string(image)
-            if text.strip():
-                return f"[Image uploaded - Text extracted via OCR]\n{text}"
-            else:
-                return "[Image uploaded - No readable text detected in image]"
+            try:
+                text = pytesseract.image_to_string(image)
+                if text.strip():
+                    return f"[Image: {img_format}, {img_size} pixels]\n\nText extracted from image:\n{text}"
+                else:
+                    return f"[Image uploaded: {img_format} format, {img_size} pixels. The image appears to contain no readable text, or may contain graphics/photos only.]"
+            except Exception as ocr_error:
+                # OCR failed, provide basic image info
+                return f"[Image uploaded: {img_format} format, {img_size} pixels, {img_mode} mode. OCR is installed but could not extract text - the image may contain graphics, photos, or handwriting rather than typed text.]"
         else:
-            # Just acknowledge the image
-            return f"[Image uploaded: {image.format} format, {image.size[0]}x{image.size[1]} pixels. OCR not available - install pytesseract to extract text from images]"
+            # No OCR - just acknowledge the image with details
+            return f"[Image uploaded: {img_format} format, {img_size} pixels, {img_mode} mode. The image has been received. Note: Text extraction from images (OCR) is not available. If this image contains important text, please describe it or provide the text separately.]"
+    
     except Exception as e:
-        return f"[Image uploaded but could not be processed: {str(e)}]"
+        return f"[Image file uploaded but could not be processed. Error: {str(e)}]"
 
 @st.cache_data
 def extract_file_content(file_bytes, filename):
