@@ -58,57 +58,84 @@ st.set_page_config(
 )
 
 # ----------------------
-# Custom CSS for White Theme
+# Custom CSS for White Theme (COMPREHENSIVE)
 # ----------------------
 st.markdown("""
 <style>
-    /* Force light mode everywhere */
-    body, .stApp, .main, .block-container {
+    /* Force light mode EVERYWHERE - Nuclear option */
+    * {
+        color: black !important;
+    }
+    
+    body, .stApp, .main, .block-container, section, .element-container {
         background-color: white !important;
         color: black !important;
     }
     
-    /* Force all text inside components to black */
-    p, span, div, label, h1, h2, h3, h4, h5, h6 {
+    /* All possible text elements */
+    p, span, div, label, h1, h2, h3, h4, h5, h6, li, a, strong, em, code, pre {
+        color: black !important;
+    }
+    
+    /* Markdown content */
+    .stMarkdown, .stMarkdown p, .stMarkdown span, .stMarkdown div {
         color: black !important;
     }
     
     /* Force sidebar light background */
-    [data-testid="stSidebar"] {
+    [data-testid="stSidebar"], [data-testid="stSidebar"] > div {
         background-color: #f8f9fa !important;
+        color: black !important;
     }
     
-    /* Buttons and inputs */
-    .stButton>button, input, textarea {
+    /* All sidebar content */
+    [data-testid="stSidebar"] * {
+        color: black !important;
+    }
+    
+    /* Buttons everywhere */
+    .stButton>button, button {
         background-color: white !important;
         color: black !important;
         border: 1px solid #ddd !important;
     }
     
-    /* Sidebar styling */
+    .stButton>button:hover, button:hover {
+        background-color: #f0f0f0 !important;
+    }
+    
+    /* All inputs and textareas */
+    input, textarea, select {
+        background-color: white !important;
+        color: black !important;
+        border: 1px solid #ddd !important;
+    }
+    
+    /* Sidebar buttons specific */
     [data-testid="stSidebar"] .stButton button {
         width: 100%;
-        background-color: white;
-        color: black;
-        border: 1px solid #ddd;
+        background-color: white !important;
+        color: black !important;
+        border: 1px solid #ddd !important;
         border-radius: 8px;
         padding: 10px;
         margin: 2px 0;
     }
     
     [data-testid="stSidebar"] .stButton button:hover {
-        background-color: #f0f0f0;
+        background-color: #f0f0f0 !important;
     }
     
-    [data-testid="stSidebar"] h3 {
-        color: black;
+    /* Expander */
+    .streamlit-expanderHeader, .streamlit-expanderContent {
+        background-color: white !important;
+        color: black !important;
     }
     
-    /* Search input in sidebar */
-    [data-testid="stSidebar"] input {
-        background-color: white;
-        color: black;
-        border: 1px solid #ddd;
+    /* Code blocks */
+    code, pre {
+        background-color: #f5f5f5 !important;
+        color: black !important;
     }
     
     /* Welcome screen */
@@ -117,60 +144,79 @@ st.markdown("""
         justify-content: center;
         align-items: center;
         height: 60vh;
+        background-color: white !important;
     }
     
     .welcome-title {
         font-size: 2.5rem;
         font-weight: 300;
-        color: black;
+        color: black !important;
         text-align: center;
     }
     
     /* Chat messages */
     .stChatMessage {
-        background-color: white;
-        color: black;
-        border: 1px solid #e0e0e0;
+        background-color: white !important;
+        color: black !important;
+        border: 1px solid #e0e0e0 !important;
         border-radius: 12px;
         padding: 15px;
         margin: 10px 0;
     }
     
+    .stChatMessage * {
+        color: black !important;
+    }
+    
     /* Chat input */
-    .stChatInput input {
-        background-color: white;
-        color: black;
-        border: 1px solid #ddd;
+    .stChatInput, .stChatInput input {
+        background-color: white !important;
+        color: black !important;
+        border: 1px solid #ddd !important;
     }
     
-    /* File upload area */
-    .uploadedFile {
-        background-color: #f8f9fa;
-        border: 1px solid #ddd;
+    /* File uploader */
+    .uploadedFile, [data-testid="stFileUploader"] {
+        background-color: #f8f9fa !important;
+        color: black !important;
+        border: 1px solid #ddd !important;
         border-radius: 8px;
-        padding: 10px;
-        margin: 5px 0;
     }
     
-    /* File badge */
-    .file-badge {
-        display: inline-block;
-        background-color: #e3f2fd;
-        color: #1976d2;
-        padding: 5px 12px;
-        border-radius: 15px;
-        margin: 3px;
-        font-size: 0.85rem;
-        border: 1px solid #90caf9;
+    [data-testid="stFileUploader"] * {
+        color: black !important;
     }
     
-    /* File container */
-    .file-container {
-        background-color: #f8f9fa;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        padding: 15px;
-        margin: 10px 0;
+    /* Spinners and loading indicators */
+    .stSpinner > div {
+        border-color: black !important;
+    }
+    
+    /* Toast notifications */
+    .stToast {
+        background-color: white !important;
+        color: black !important;
+    }
+    
+    /* Headers */
+    header, [data-testid="stHeader"] {
+        background-color: white !important;
+    }
+    
+    /* Footer */
+    footer {
+        background-color: white !important;
+        color: black !important;
+    }
+    
+    /* Columns */
+    [data-testid="column"] {
+        background-color: white !important;
+    }
+    
+    /* Remove any dark mode artifacts */
+    [data-theme="dark"] {
+        display: none !important;
     }
 </style>
 """, unsafe_allow_html=True)
