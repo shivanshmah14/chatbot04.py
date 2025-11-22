@@ -6,6 +6,7 @@ import tempfile
 import json
 from pathlib import Path
 from datetime import datetime
+import io
 
 # Optional imports
 try:
@@ -19,6 +20,32 @@ try:
     PDF_SUPPORT = True
 except ImportError:
     PDF_SUPPORT = False
+
+try:
+    from docx import Document
+    DOCX_SUPPORT = True
+except ImportError:
+    DOCX_SUPPORT = False
+
+try:
+    from pptx import Presentation
+    PPTX_SUPPORT = True
+except ImportError:
+    PPTX_SUPPORT = False
+
+try:
+    import openpyxl
+    import pandas as pd
+    EXCEL_SUPPORT = True
+except ImportError:
+    EXCEL_SUPPORT = False
+
+try:
+    from PIL import Image
+    import pytesseract
+    OCR_SUPPORT = True
+except ImportError:
+    OCR_SUPPORT = False
 
 # ----------------------
 # Streamlit UI Setup
@@ -172,24 +199,116 @@ if "last_processed_files" not in st.session_state:
 # ----------------------
 # Helper Functions
 # ----------------------
+def extract_text_from_pdf(file_bytes):
+    """Extract text from PDF"""
+    try:
+        pdf = PyPDF2.PdfReader(io.BytesIO(file_bytes))
+        text = []
+        for page in pdf.pages:
+            text.append(page.extract_text())
+        return "\n".join(text)
+    except Exception as e:
+        return f"Error reading PDF: {e}"
+
+def extract_text_from_docx(file_bytes):
+    """Extract text from Word document"""
+    try:
+        doc = Document(io.BytesIO(file_bytes))
+        text = []
+        for paragraph in doc.paragraphs:
+            text.append(paragraph.text)
+        # Also extract text from tables
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    text.append(cell.text)
+        return "\n".join(text)
+    except Exception as e:
+        return f"Error reading DOCX: {e}"
+
+def extract_text_from_pptx(file_bytes):
+    """Extract text from PowerPoint"""
+    try:
+        prs = Presentation(io.BytesIO(file_bytes))
+        text = []
+        for slide_num, slide in enumerate(prs.slides, 1):
+            text.append(f"\n--- Slide {slide_num} ---")
+            for shape in slide.shapes:
+                if hasattr(shape, "text"):
+                    text.append(shape.text)
+        return "\n".join(text)
+    except Exception as e:
+        return f"Error reading PPTX: {e}"
+
+def extract_text_from_excel(file_bytes):
+    """Extract text from Excel"""
+    try:
+        # Try reading with pandas
+        df_dict = pd.read_excel(io.BytesIO(file_bytes), sheet_name=None)
+        text = []
+        for sheet_name, df in df_dict.items():
+            text.append(f"\n--- Sheet: {sheet_name} ---")
+            text.append(df.to_string())
+        return "\n".join(text)
+    except Exception as e:
+        return f"Error reading Excel: {e}"
+
+def extract_text_from_image(file_bytes):
+    """Extract text from image using OCR"""
+    try:
+        image = Image.open(io.BytesIO(file_bytes))
+        text = pytesseract.image_to_string(image)
+        return text if text.strip() else "No text detected in image"
+    except Exception as e:
+        return f"Image uploaded (OCR not available): {e}"
+
 @st.cache_data
 def extract_file_content(file_bytes, filename):
     """Extract text content from various file types"""
     ext = Path(filename).suffix.lower()
+    
     try:
-        if ext == '.txt':
-            return file_bytes.decode('utf-8')
+        # PDF files
         if ext == '.pdf' and PDF_SUPPORT:
-            import io
-            pdf = PyPDF2.PdfReader(io.BytesIO(file_bytes))
-            return "\n".join([p.extract_text() for p in pdf.pages])
-        if ext == '.json':
-            return json.dumps(json.loads(file_bytes.decode('utf-8')), indent=2)
-        if ext in ['.csv', '.py', '.md', '.html', '.css', '.js']:
+            return extract_text_from_pdf(file_bytes)
+        
+        # Word documents
+        elif ext in ['.docx', '.doc'] and DOCX_SUPPORT:
+            return extract_text_from_docx(file_bytes)
+        
+        # PowerPoint presentations
+        elif ext in ['.pptx', '.ppt'] and PPTX_SUPPORT:
+            return extract_text_from_pptx(file_bytes)
+        
+        # Excel files
+        elif ext in ['.xlsx', '.xls'] and EXCEL_SUPPORT:
+            return extract_text_from_excel(file_bytes)
+        
+        # Image files
+        elif ext in ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff'] and OCR_SUPPORT:
+            return extract_text_from_image(file_bytes)
+        
+        # Text-based files
+        elif ext == '.txt':
             return file_bytes.decode('utf-8')
-        return file_bytes.decode('utf-8', errors='ignore')
+        
+        # JSON files
+        elif ext == '.json':
+            return json.dumps(json.loads(file_bytes.decode('utf-8')), indent=2)
+        
+        # Code and markup files
+        elif ext in ['.csv', '.py', '.md', '.html', '.css', '.js', '.xml', '.yaml', '.yml']:
+            return file_bytes.decode('utf-8')
+        
+        # Try to decode as text for any other file
+        else:
+            try:
+                return file_bytes.decode('utf-8', errors='ignore')
+            except:
+                return f"Binary file uploaded: {filename} ({format_file_size(len(file_bytes))})"
+    
     except Exception as e:
-        return f"Error reading {filename}: {e}"
+        return f"Error reading {filename}: {str(e)}"
 
 def format_file_size(size_bytes):
     """Format file size in human-readable format"""
@@ -244,6 +363,24 @@ def remove_file(filename):
     """Remove a file from the current session"""
     current_session = get_current_session()
     current_session["files"] = [f for f in current_session["files"] if f['filename'] != filename]
+
+def get_file_icon(ext):
+    """Get appropriate icon for file type"""
+    icons = {
+        '.pdf': '📕',
+        '.doc': '📘', '.docx': '📘',
+        '.xls': '📊', '.xlsx': '📊',
+        '.ppt': '📊', '.pptx': '📊',
+        '.txt': '📄',
+        '.csv': '📊',
+        '.json': '🔧',
+        '.py': '🐍',
+        '.js': '💛',
+        '.html': '🌐',
+        '.css': '🎨',
+        '.png': '🖼️', '.jpg': '🖼️', '.jpeg': '🖼️', '.gif': '🖼️'
+    }
+    return icons.get(ext.lower(), '📎')
 
 # ----------------------
 # Sidebar: Chat History
@@ -313,7 +450,7 @@ else:
                 st.audio(msg["audio_file"], format="audio/mp3")
 
 # ----------------------
-# File Upload Section (Enhanced)
+# File Upload Section (Universal Support)
 # ----------------------
 st.markdown("---")
 
@@ -321,16 +458,17 @@ st.markdown("---")
 col1, col2 = st.columns([3, 1])
 
 with col1:
-    supported_types = ['txt', 'json', 'csv', 'py', 'md', 'html', 'css', 'js']
-    if PDF_SUPPORT:
-        supported_types.insert(0, 'pdf')
-    
+    # Accept ALL file types by listing comprehensive extensions
     uploaded_files = st.file_uploader(
-        "📎 Attach files to your conversation", 
-        type=supported_types, 
+        "📎 Attach any files (Word, PDF, Excel, PowerPoint, Images, Code, etc.)", 
         accept_multiple_files=True,
         key="file_uploader",
-        help="Upload documents to enhance the AI's context"
+        help="Upload any document type - we'll extract the content automatically!",
+        type=['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 
+              'txt', 'csv', 'json', 'xml', 'yaml', 'yml',
+              'py', 'js', 'html', 'css', 'md', 'java', 'cpp', 'c',
+              'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'svg',
+              'zip', 'rar', '7z', 'tar', 'gz']
     )
 
 with col2:
@@ -345,18 +483,22 @@ if uploaded_files:
     current_file_names = [f.name for f in uploaded_files]
     if current_file_names != st.session_state.last_processed_files:
         st.session_state.last_processed_files = current_file_names
-        for uploaded_file in uploaded_files:
-            file_bytes = uploaded_file.read()
-            content = extract_file_content(file_bytes, uploaded_file.name)
-            if content:
+        
+        with st.spinner("Processing files..."):
+            for uploaded_file in uploaded_files:
+                file_bytes = uploaded_file.read()
+                content = extract_file_content(file_bytes, uploaded_file.name)
+                
                 if not any(f['filename'] == uploaded_file.name for f in current_session["files"]):
                     current_session["files"].append({
                         'filename': uploaded_file.name,
                         'content': content,
                         'size': len(file_bytes),
-                        'type': Path(uploaded_file.name).suffix.upper()[1:]
+                        'type': Path(uploaded_file.name).suffix.upper()[1:] or 'FILE',
+                        'icon': get_file_icon(Path(uploaded_file.name).suffix)
                     })
-        st.toast(f"✅ {len(uploaded_files)} file(s) attached!", icon="✅")
+        
+        st.toast(f"✅ {len(uploaded_files)} file(s) processed and attached!", icon="✅")
         st.rerun()
 
 # Display attached files
@@ -364,16 +506,16 @@ if current_session["files"]:
     st.markdown("#### 📁 Attached Files")
     
     for idx, file_data in enumerate(current_session["files"]):
-        col1, col2, col3, col4 = st.columns([3, 1, 1, 0.5])
+        col1, col2, col3, col4 = st.columns([0.5, 3, 1, 0.5])
         
         with col1:
-            st.markdown(f"**{file_data['filename']}**")
+            st.markdown(f"{file_data.get('icon', '📎')}")
         
         with col2:
-            st.markdown(f"`{file_data.get('type', 'FILE')}`")
+            st.markdown(f"**{file_data['filename']}**")
         
         with col3:
-            st.markdown(f"*{format_file_size(file_data['size'])}*")
+            st.markdown(f"`{file_data.get('type', 'FILE')}` • *{format_file_size(file_data['size'])}*")
         
         with col4:
             if st.button("❌", key=f"remove_file_{idx}", help=f"Remove {file_data['filename']}"):
@@ -385,6 +527,17 @@ if current_session["files"]:
                 st.rerun()
     
     st.markdown("---")
+
+# Display library status
+with st.expander("📚 Supported File Types & Library Status"):
+    st.markdown("**✅ Always Supported:** TXT, JSON, CSV, Python, Markdown, HTML, CSS, JavaScript")
+    st.markdown(f"**{'✅' if PDF_SUPPORT else '❌'} PDF:** {'Enabled' if PDF_SUPPORT else 'Install PyPDF2'}")
+    st.markdown(f"**{'✅' if DOCX_SUPPORT else '❌'} Word (.docx):** {'Enabled' if DOCX_SUPPORT else 'Install python-docx'}")
+    st.markdown(f"**{'✅' if PPTX_SUPPORT else '❌'} PowerPoint (.pptx):** {'Enabled' if PPTX_SUPPORT else 'Install python-pptx'}")
+    st.markdown(f"**{'✅' if EXCEL_SUPPORT else '❌'} Excel (.xlsx):** {'Enabled' if EXCEL_SUPPORT else 'Install openpyxl and pandas'}")
+    st.markdown(f"**{'✅' if OCR_SUPPORT else '❌'} Images (OCR):** {'Enabled' if OCR_SUPPORT else 'Install Pillow and pytesseract'}")
+    st.markdown("\n**To enable all formats, run:**")
+    st.code("pip install PyPDF2 python-docx python-pptx openpyxl pandas Pillow pytesseract")
 
 # ----------------------
 # Chat Input
@@ -406,9 +559,9 @@ if user_message:
         files_context = "\n\n=== UPLOADED FILES ===\n"
         for fdata in current_session["files"]:
             files_context += f"\n[FILE: {fdata['filename']} ({fdata.get('type', 'FILE')})]\n"
-            files_context += fdata['content'][:3000]
-            if len(fdata['content']) > 3000:
-                files_context += "\n... (truncated)\n"
+            files_context += fdata['content'][:5000]  # Increased from 3000
+            if len(fdata['content']) > 5000:
+                files_context += "\n... (content truncated for context length)\n"
         files_context += "=== END FILES ===\n\n"
     
     # Assistant response
