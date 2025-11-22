@@ -624,14 +624,19 @@ if user_message:
         placeholder = st.empty()
         placeholder.markdown("🤔 Thinking...")
         try:
+            # Build complete conversation history for API
             messages_for_api = [{"role": "system", "content": SYSTEM_PROMPT}]
-            user_content = files_context + user_message if files_context else user_message
             
-            for m in current_session["messages"][1:]:
-                if m["role"] == "user" and m["content"] == user_message:
-                    messages_for_api.append({"role": "user", "content": user_content})
-                else:
-                    messages_for_api.append({"role": m["role"], "content": m["content"]})
+            # Add ALL previous messages from this session (for memory)
+            for m in current_session["messages"][1:]:  # Skip system prompt
+                if m["role"] in ["user", "assistant"]:
+                    # For the current user message, add file context
+                    if m["role"] == "user" and m["content"] == user_message:
+                        user_content = files_context + user_message if files_context else user_message
+                        messages_for_api.append({"role": "user", "content": user_content})
+                    else:
+                        # Add all other messages as-is for full conversation history
+                        messages_for_api.append({"role": m["role"], "content": m["content"]})
             
             payload = {"model": MODEL, "messages": messages_for_api}
             headers = {
