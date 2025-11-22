@@ -434,23 +434,32 @@ def extract_text_from_image(file_bytes):
         img_size = f"{image.size[0]}x{image.size[1]}"
         img_mode = image.mode
         
-        # Try OCR if available
-        if OCR_SUPPORT:
-            try:
-                text = pytesseract.image_to_string(image)
-                if text.strip():
-                    return f"[Image: {img_format}, {img_size} pixels]\n\nText extracted from image:\n{text}"
-                else:
-                    return f"[Image uploaded: {img_format} format, {img_size} pixels. The image appears to contain no readable text, or may contain graphics/photos only.]"
-            except Exception as ocr_error:
-                # OCR failed, provide basic image info
-                return f"[Image uploaded: {img_format} format, {img_size} pixels, {img_mode} mode. OCR is installed but could not extract text - the image may contain graphics, photos, or handwriting rather than typed text.]"
-        else:
-            # No OCR - just acknowledge the image with details
-            return f"[Image uploaded: {img_format} format, {img_size} pixels, {img_mode} mode. The image has been received. Note: Text extraction from images (OCR) is not available. If this image contains important text, please describe it or provide the text separately.]"
+        # Always try OCR, even if imports failed initially
+        try:
+            import pytesseract
+            from PIL import Image as PILImage
+            
+            # Try to extract text
+            text = pytesseract.image_to_string(image)
+            
+            if text.strip():
+                return f"[Image: {img_format}, {img_size} pixels]\n\nExtracted Text:\n{text.strip()}"
+            else:
+                return f"[Image: {img_format}, {img_size} pixels]\n\nOCR was successful but no text was detected in the image. The image may contain only graphics, photos, or handwriting."
+        
+        except ImportError as import_err:
+            return f"[Image: {img_format}, {img_size} pixels]\n\nOCR libraries are not installed. Install with: pip install pytesseract Pillow\nError: {str(import_err)}"
+        
+        except Exception as ocr_error:
+            # Check if it's a Tesseract not found error
+            error_msg = str(ocr_error).lower()
+            if 'tesseract' in error_msg or 'not found' in error_msg or 'command' in error_msg:
+                return f"[Image: {img_format}, {img_size} pixels]\n\nTesseract OCR engine is not installed on the system. The Python library is present, but the actual Tesseract program is missing.\n\nFor Streamlit Cloud: Add to packages.txt:\ntesseract-ocr\ntesseract-ocr-eng\n\nFor local install:\nWindows: Download from https://github.com/UB-Mannheim/tesseract/wiki\nMac: brew install tesseract\nLinux: sudo apt-get install tesseract-ocr\n\nError details: {str(ocr_error)}"
+            else:
+                return f"[Image: {img_format}, {img_size} pixels]\n\nOCR attempted but failed. Error: {str(ocr_error)}"
     
     except Exception as e:
-        return f"[Image file uploaded but could not be processed. Error: {str(e)}]"
+        return f"[Image file could not be processed. Error: {str(e)}]"
 
 @st.cache_data
 def extract_file_content(file_bytes, filename):
@@ -749,6 +758,23 @@ with st.expander("📚 Supported File Types & Library Status"):
     st.markdown(f"**{'✅' if PPTX_SUPPORT else '❌'} PowerPoint (.pptx):** {'Enabled' if PPTX_SUPPORT else '⚠️ Install python-pptx: pip install python-pptx'}")
     st.markdown(f"**{'✅' if EXCEL_SUPPORT else '❌'} Excel (.xlsx):** {'Enabled' if EXCEL_SUPPORT else '⚠️ Install openpyxl pandas: pip install openpyxl pandas'}")
     st.markdown(f"**{'✅' if OCR_SUPPORT else '❌'} Images (OCR):** {'Enabled' if OCR_SUPPORT else '⚠️ Install Pillow pytesseract: pip install Pillow pytesseract'}")
+    
+    # Test Tesseract
+    st.markdown("---")
+    st.markdown("**🔍 OCR Engine Test:**")
+    try:
+        import pytesseract
+        try:
+            version = pytesseract.get_tesseract_version()
+            st.success(f"✅ Tesseract OCR is installed! Version: {version}")
+        except Exception as e:
+            st.error(f"❌ Tesseract engine not found: {str(e)}")
+            st.markdown("**Fix:** Add to `packages.txt`:")
+            st.code("tesseract-ocr\ntesseract-ocr-eng")
+    except ImportError:
+        st.error("❌ pytesseract library not installed")
+        st.markdown("**Fix:** Add to `requirements.txt`:")
+        st.code("pytesseract\nPillow")
     
     st.markdown("---")
     st.markdown("**🔍 Deployment Check:**")
