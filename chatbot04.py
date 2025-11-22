@@ -732,13 +732,34 @@ if current_session["files"]:
 # Display library status
 with st.expander("📚 Supported File Types & Library Status"):
     st.markdown("**✅ Always Supported:** TXT, JSON, CSV, Python, Markdown, HTML, CSS, JavaScript")
-    st.markdown(f"**{'✅' if PDF_SUPPORT else '❌'} PDF:** {'Enabled' if PDF_SUPPORT else 'Install PyPDF2'}")
-    st.markdown(f"**{'✅' if DOCX_SUPPORT else '❌'} Word (.docx):** {'Enabled' if DOCX_SUPPORT else 'Install python-docx'}")
-    st.markdown(f"**{'✅' if PPTX_SUPPORT else '❌'} PowerPoint (.pptx):** {'Enabled' if PPTX_SUPPORT else 'Install python-pptx'}")
-    st.markdown(f"**{'✅' if EXCEL_SUPPORT else '❌'} Excel (.xlsx):** {'Enabled' if EXCEL_SUPPORT else 'Install openpyxl and pandas'}")
-    st.markdown(f"**{'✅' if OCR_SUPPORT else '❌'} Images (OCR):** {'Enabled' if OCR_SUPPORT else 'Install Pillow and pytesseract'}")
-    st.markdown("\n**To enable all formats, run:**")
-    st.code("pip install PyPDF2 python-docx python-pptx openpyxl pandas Pillow pytesseract")
+    st.markdown(f"**{'✅' if PDF_SUPPORT else '❌'} PDF:** {'Enabled' if PDF_SUPPORT else '⚠️ Install PyPDF2: pip install PyPDF2'}")
+    st.markdown(f"**{'✅' if DOCX_SUPPORT else '❌'} Word (.docx):** {'Enabled' if DOCX_SUPPORT else '⚠️ Install python-docx: pip install python-docx'}")
+    st.markdown(f"**{'✅' if PPTX_SUPPORT else '❌'} PowerPoint (.pptx):** {'Enabled' if PPTX_SUPPORT else '⚠️ Install python-pptx: pip install python-pptx'}")
+    st.markdown(f"**{'✅' if EXCEL_SUPPORT else '❌'} Excel (.xlsx):** {'Enabled' if EXCEL_SUPPORT else '⚠️ Install openpyxl pandas: pip install openpyxl pandas'}")
+    st.markdown(f"**{'✅' if OCR_SUPPORT else '❌'} Images (OCR):** {'Enabled' if OCR_SUPPORT else '⚠️ Install Pillow pytesseract: pip install Pillow pytesseract'}")
+    
+    st.markdown("---")
+    st.markdown("**🔍 Deployment Check:**")
+    if not (PDF_SUPPORT and DOCX_SUPPORT and PPTX_SUPPORT and EXCEL_SUPPORT):
+        st.warning("⚠️ Some libraries are missing! Make sure you have requirements.txt in your deployment.")
+        st.code("""# requirements.txt content:
+streamlit
+requests
+gtts
+PyPDF2
+python-docx
+python-pptx
+openpyxl
+pandas
+Pillow
+pytesseract""")
+    else:
+        st.success("✅ All document libraries are installed!")
+    
+    st.markdown("\n**📝 For Streamlit Cloud:**")
+    st.markdown("1. Add `requirements.txt` to your GitHub repo")
+    st.markdown("2. Click 'Reboot app' in Streamlit Cloud dashboard")
+    st.markdown("3. Wait 2-3 minutes for installation to complete")
 
 # ----------------------
 # Chat Input
@@ -772,21 +793,32 @@ if user_message:
         placeholder = st.empty()
         placeholder.markdown("🤔 Thinking...")
         try:
-            # Build complete conversation history for API
+            # Build complete conversation history for API with proper alternating turns
             messages_for_api = [{"role": "system", "content": SYSTEM_PROMPT}]
             
-            # Add ALL previous messages from this session (for memory)
-            for m in current_session["messages"][1:]:  # Skip system prompt
-                if m["role"] in ["user", "assistant"]:
-                    # For the current user message, add file context
-                    if m["role"] == "user" and m["content"] == user_message:
-                        user_content = files_context + user_message if files_context else user_message
-                        messages_for_api.append({"role": "user", "content": user_content})
-                    else:
-                        # Add all other messages as-is for full conversation history
-                        messages_for_api.append({"role": m["role"], "content": m["content"]})
+            # Get all messages except system prompt
+            conversation_messages = [m for m in current_session["messages"][1:] if m["role"] in ["user", "assistant"]]
             
-            payload = {"model": MODEL, "messages": messages_for_api}
+            # Add conversation history (should already alternate)
+            for i, m in enumerate(conversation_messages):
+                # Skip the last message since we'll add it separately with file context
+                if i == len(conversation_messages) - 1 and m["role"] == "user" and m["content"] == user_message:
+                    continue
+                messages_for_api.append({"role": m["role"], "content": m["content"]})
+            
+            # Add the current user message with file context
+            user_content = files_context + user_message if files_context else user_message
+            messages_for_api.append({"role": "user", "content": user_content})
+            
+            # Ensure proper alternation (fix if needed)
+            cleaned_messages = [messages_for_api[0]]  # Keep system prompt
+            for i in range(1, len(messages_for_api)):
+                current_msg = messages_for_api[i]
+                # Only add if it alternates with previous (or if it's the first non-system message)
+                if len(cleaned_messages) == 1 or cleaned_messages[-1]["role"] != current_msg["role"]:
+                    cleaned_messages.append(current_msg)
+            
+            payload = {"model": MODEL, "messages": cleaned_messages}
             headers = {
                 "Authorization": f"Bearer {API_KEY}",
                 "Content-Type": "application/json"
