@@ -113,145 +113,334 @@ st.set_page_config(
 )
 
 # ----------------------
-# Custom CSS for White Theme
+# Custom CSS for White Theme with Black Text
 # ----------------------
 st.markdown("""
 <style>
-    * {
-        color: black !important;
+    /* Force light theme */
+    :root {
+        color-scheme: light !important;
     }
     
-    body, .stApp, .main, .block-container, section, .element-container {
-        background-color: white !important;
-        color: black !important;
+    /* Main app background */
+    .stApp, .main, [data-testid="stAppViewContainer"] {
+        background-color: #ffffff !important;
     }
     
-    p, span, div, label, h1, h2, h3, h4, h5, h6, li, a, strong, em, code, pre {
-        color: black !important;
+    /* All text black */
+    .stApp, .stApp * {
+        color: #000000 !important;
     }
     
-    .stMarkdown, .stMarkdown p, .stMarkdown span, .stMarkdown div {
-        color: black !important;
-    }
-    
-    [data-testid="stSidebar"], [data-testid="stSidebar"] > div {
-        background-color: #f8f9fa !important;
-        color: black !important;
-    }
-    
+    /* Sidebar */
+    [data-testid="stSidebar"], 
+    [data-testid="stSidebar"] > div,
     [data-testid="stSidebar"] * {
-        color: black !important;
+        background-color: #f8f9fa !important;
+        color: #000000 !important;
     }
     
-    .stButton>button, button {
-        background-color: white !important;
-        color: black !important;
-        border: 1px solid #ddd !important;
+    /* Headers */
+    h1, h2, h3, h4, h5, h6,
+    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
+        color: #000000 !important;
     }
     
-    .stButton>button:hover, button:hover {
+    /* Paragraphs and text */
+    p, span, div, label, li, a {
+        color: #000000 !important;
+    }
+    
+    /* Buttons */
+    .stButton > button,
+    button[kind="primary"],
+    button[kind="secondary"],
+    [data-testid="stSidebar"] button {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #cccccc !important;
+    }
+    
+    .stButton > button:hover,
+    button:hover {
         background-color: #f0f0f0 !important;
+        color: #000000 !important;
+        border: 1px solid #999999 !important;
     }
     
-    input, textarea, select {
-        background-color: white !important;
-        color: black !important;
-        border: 1px solid #ddd !important;
+    /* Text inputs */
+    .stTextInput > div > div > input,
+    .stTextArea > div > div > textarea,
+    input[type="text"],
+    textarea {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #cccccc !important;
     }
     
-    [data-testid="stSidebar"] .stButton button {
-        width: 100%;
-        background-color: white !important;
-        color: black !important;
-        border: 1px solid #ddd !important;
-        border-radius: 8px;
-        padding: 10px;
-        margin: 2px 0;
+    /* SELECT BOXES / DROPDOWNS - Main fix */
+    .stSelectbox > div > div,
+    .stSelectbox > div > div > div,
+    .stSelectbox [data-baseweb="select"],
+    .stSelectbox [data-baseweb="select"] > div,
+    [data-baseweb="select"],
+    [data-baseweb="popover"],
+    [data-baseweb="menu"],
+    [role="listbox"],
+    [role="option"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
     }
     
-    [data-testid="stSidebar"] .stButton button:hover {
-        background-color: #f0f0f0 !important;
+    /* Dropdown selected value */
+    .stSelectbox > div > div > div > div,
+    [data-baseweb="select"] > div > div > div {
+        background-color: #ffffff !important;
+        color: #000000 !important;
     }
     
-    .streamlit-expanderHeader, .streamlit-expanderContent {
-        background-color: white !important;
-        color: black !important;
+    /* Dropdown menu items */
+    [data-baseweb="menu"] li,
+    [data-baseweb="menu"] div,
+    [role="option"],
+    [role="option"] div,
+    ul[role="listbox"] li {
+        background-color: #ffffff !important;
+        color: #000000 !important;
     }
     
-    code, pre {
+    /* Dropdown hover state */
+    [data-baseweb="menu"] li:hover,
+    [role="option"]:hover,
+    [data-highlighted="true"] {
+        background-color: #e8e8e8 !important;
+        color: #000000 !important;
+    }
+    
+    /* Dropdown arrow/icon */
+    .stSelectbox svg,
+    [data-baseweb="select"] svg {
+        fill: #000000 !important;
+        color: #000000 !important;
+    }
+    
+    /* Slider */
+    .stSlider > div > div > div,
+    .stSlider label,
+    .stSlider p {
+        color: #000000 !important;
+    }
+    
+    /* Checkbox */
+    .stCheckbox label,
+    .stCheckbox span {
+        color: #000000 !important;
+    }
+    
+    /* Chat messages */
+    .stChatMessage,
+    [data-testid="stChatMessage"] {
+        background-color: #f9f9f9 !important;
+        border: 1px solid #e0e0e0 !important;
+        color: #000000 !important;
+    }
+    
+    .stChatMessage *,
+    [data-testid="stChatMessage"] * {
+        color: #000000 !important;
+    }
+    
+    /* Chat input */
+    .stChatInputContainer,
+    .stChatInputContainer > div,
+    .stChatInputContainer input,
+    .stChatInputContainer textarea,
+    [data-testid="stChatInput"],
+    [data-testid="stChatInput"] * {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-color: #cccccc !important;
+    }
+    
+    /* File uploader */
+    .stFileUploader,
+    [data-testid="stFileUploader"],
+    [data-testid="stFileUploader"] * {
+        background-color: #f8f9fa !important;
+        color: #000000 !important;
+    }
+    
+    .stFileUploader label,
+    .stFileUploader section {
+        background-color: #f8f9fa !important;
+        color: #000000 !important;
+        border: 1px dashed #cccccc !important;
+    }
+    
+    /* Expander */
+    .streamlit-expanderHeader,
+    .streamlit-expanderContent,
+    [data-testid="stExpander"],
+    [data-testid="stExpander"] * {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* Code blocks */
+    code, pre, .stCodeBlock {
         background-color: #f5f5f5 !important;
-        color: black !important;
+        color: #000000 !important;
     }
     
+    /* Info, warning, error, success boxes */
+    .stAlert,
+    [data-testid="stAlert"],
+    .stInfo, .stWarning, .stError, .stSuccess {
+        color: #000000 !important;
+    }
+    
+    .stAlert p,
+    [data-testid="stAlert"] p {
+        color: #000000 !important;
+    }
+    
+    /* Download button */
+    .stDownloadButton > button {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #cccccc !important;
+    }
+    
+    .stDownloadButton > button:hover {
+        background-color: #f0f0f0 !important;
+    }
+    
+    /* Spinner */
+    .stSpinner > div {
+        border-top-color: #000000 !important;
+    }
+    
+    /* Toast */
+    [data-testid="stToast"],
+    .stToast {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* Header */
+    header,
+    [data-testid="stHeader"] {
+        background-color: #ffffff !important;
+    }
+    
+    /* Metric */
+    .stMetric,
+    .stMetric label,
+    .stMetric [data-testid="stMetricValue"] {
+        color: #000000 !important;
+    }
+    
+    /* Welcome container */
     .welcome-container {
         display: flex;
         justify-content: center;
         align-items: center;
         height: 60vh;
-        background-color: white !important;
+        background-color: #ffffff !important;
     }
     
     .welcome-title {
         font-size: 2.5rem;
         font-weight: 300;
-        color: black !important;
+        color: #000000 !important;
         text-align: center;
     }
     
-    .stChatMessage {
-        background-color: white !important;
-        color: black !important;
-        border: 1px solid #e0e0e0 !important;
-        border-radius: 12px;
-        padding: 15px;
-        margin: 10px 0;
+    /* Popover/Modal backgrounds */
+    [data-baseweb="popover"] > div,
+    [data-baseweb="popover"] > div > div {
+        background-color: #ffffff !important;
+        color: #000000 !important;
     }
     
-    .stChatMessage * {
-        color: black !important;
+    /* Multi-select */
+    .stMultiSelect > div > div,
+    .stMultiSelect [data-baseweb="tag"] {
+        background-color: #e8e8e8 !important;
+        color: #000000 !important;
     }
     
-    .stChatInput, .stChatInput input {
-        background-color: white !important;
-        color: black !important;
-        border: 1px solid #ddd !important;
+    /* Table */
+    .stTable, .stDataFrame,
+    table, th, td {
+        background-color: #ffffff !important;
+        color: #000000 !important;
     }
     
-    .uploadedFile, [data-testid="stFileUploader"] {
-        background-color: #f8f9fa !important;
-        color: black !important;
-        border: 1px solid #ddd !important;
-        border-radius: 8px;
+    /* Progress bar text */
+    .stProgress > div > div > div {
+        color: #000000 !important;
     }
     
-    [data-testid="stFileUploader"] * {
-        color: black !important;
-    }
-    
-    .stSpinner > div {
-        border-color: black !important;
-    }
-    
-    .stToast {
-        background-color: white !important;
-        color: black !important;
-    }
-    
-    header, [data-testid="stHeader"] {
-        background-color: white !important;
-    }
-    
-    footer {
-        background-color: white !important;
-        color: black !important;
-    }
-    
-    [data-testid="column"] {
-        background-color: white !important;
-    }
-    
+    /* Hide dark theme elements */
     [data-theme="dark"] {
         display: none !important;
+    }
+    
+    /* Markdown */
+    .stMarkdown, .stMarkdown * {
+        color: #000000 !important;
+    }
+    
+    /* Links */
+    a, a:visited, a:hover {
+        color: #0066cc !important;
+    }
+    
+    /* Divider */
+    hr {
+        border-color: #e0e0e0 !important;
+    }
+    
+    /* Number input */
+    .stNumberInput > div > div > input {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* Date input */
+    .stDateInput > div > div > input {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* Radio buttons */
+    .stRadio label,
+    .stRadio > div {
+        color: #000000 !important;
+    }
+    
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"],
+    .stTabs [data-baseweb="tab"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* Columns */
+    [data-testid="column"] {
+        background-color: transparent !important;
+    }
+    
+    /* Ensure SVG icons are visible */
+    svg {
+        fill: currentColor !important;
+    }
+    
+    /* Placeholder text */
+    ::placeholder {
+        color: #888888 !important;
+        opacity: 1 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -402,19 +591,13 @@ def translate_content(text, target_lang):
         return text
 
 
-def rgb_color(r, g, b):
-    """Create an RGB color object compatible with python-pptx."""
-    from pptx.dml.color import RGBColor
-    return RGBColor(r, g, b)
-
-
 def create_powerpoint_presentation(slides, topic, target_lang_name, include_images=True, progress_callback=None):
     """Creates a PowerPoint presentation with images from Pexels."""
     
     # Import pptx modules
     from pptx import Presentation
     from pptx.util import Inches, Pt
-    from pptx.dml.color import RGBColor  # Correct import - RGBColor not RgbColor
+    from pptx.dml.color import RGBColor
     from pptx.enum.text import PP_ALIGN
     
     prs = Presentation()
@@ -1329,8 +1512,8 @@ else:
 # ----------------------
 st.markdown("---")
 st.markdown(
-    "<div style='text-align: center; color: black; padding: 20px;'>"
-    "<p>Shiva AI by Shivansh Mahajan</p>"
+    "<div style='text-align: center; color: #000000 !important; padding: 20px;'>"
+    "<p style='color: #000000 !important;'>Shiva AI by Shivansh Mahajan</p>"
     "</div>",
     unsafe_allow_html=True
 )
