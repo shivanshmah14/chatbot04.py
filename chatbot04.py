@@ -458,7 +458,8 @@ SYSTEM_PROMPT = (
     "When files are provided, analyze them thoroughly and reference specific details. "
     "When image files are uploaded but OCR is not available, acknowledge the image was received "
     "and ask the user to describe what's in the image or provide any text from it if they need analysis. "
-    "Be professional, clear, and comprehensive in your answers."
+    "Be professional, clear, and comprehensive in your answers. "
+    "Always provide complete responses - never cut off mid-sentence."
 )
 
 # Presentation Generator Configuration
@@ -475,6 +476,104 @@ SUPPORTED_LANGUAGES = {
 # Storage directory for persistent data
 STORAGE_DIR = Path("shiva_ai_data")
 STORAGE_DIR.mkdir(exist_ok=True)
+
+
+# ----------------------
+# AI Chat Function with Better Response Handling
+# ----------------------
+def get_ai_response(messages, max_retries=3):
+    """
+    Get AI response with retry logic and better error handling.
+    Handles long responses and potential truncation.
+    """
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "model": MODEL,
+        "messages": messages,
+        "max_tokens": 4096,  # Request more tokens for longer responses
+        "temperature": 0.7
+    }
+    
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(
+                CHAT_API_URL,
+                headers=headers,
+                json=payload,
+                timeout=120  # Increased timeout for longer responses
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Extract the response text
+                if "choices" in data and len(data["choices"]) > 0:
+                    message = data["choices"][0].get("message", {})
+                    content = message.get("content", "")
+                    
+                    # Check if response was truncated
+                    finish_reason = data["choices"][0].get("finish_reason", "")
+                    
+                    if finish_reason == "length":
+                        # Response was truncated, try to continue
+                        content += "\n\n[Response was long. Continuing...]\n\n"
+                        
+                        # Make a follow-up request to continue
+                        continuation_messages = messages.copy()
+                        continuation_messages.append({"role": "assistant", "content": content})
+                        continuation_messages.append({"role": "user", "content": "Please continue from where you left off."})
+                        
+                        continuation_payload = {
+                            "model": MODEL,
+                            "messages": continuation_messages,
+                            "max_tokens": 4096,
+                            "temperature": 0.7
+                        }
+                        
+                        cont_response = requests.post(
+                            CHAT_API_URL,
+                            headers=headers,
+                            json=continuation_payload,
+                            timeout=120
+                        )
+                        
+                        if cont_response.status_code == 200:
+                            cont_data = cont_response.json()
+                            if "choices" in cont_data and len(cont_data["choices"]) > 0:
+                                continuation = cont_data["choices"][0].get("message", {}).get("content", "")
+                                content += continuation
+                    
+                    return content if content else "No response received."
+                else:
+                    return "No response content found."
+            
+            elif response.status_code == 429:
+                # Rate limited, wait and retry
+                import time
+                time.sleep(2 ** attempt)
+                continue
+            
+            else:
+                return f"⚠️ API Error {response.status_code}: {response.text[:500]}"
+        
+        except requests.exceptions.Timeout:
+            if attempt < max_retries - 1:
+                continue
+            return "⚠️ Request timed out. Please try again with a shorter question."
+        
+        except requests.exceptions.RequestException as e:
+            if attempt < max_retries - 1:
+                continue
+            return f"⚠️ Connection error: {str(e)}"
+        
+        except Exception as e:
+            return f"❌ Error: {str(e)}"
+    
+    return "⚠️ Failed to get response after multiple attempts. Please try again."
 
 
 # ----------------------
@@ -560,8 +659,12 @@ def generate_english_presentation(topic, slide_count):
     Return a single JSON array of objects. Each object must have "title" and "content" (a string with 3-4 bullet points, separated by newlines).
     Only return the JSON array, no additional text or markdown formatting.
     """
-    payload = {"model": "sarvam-m", "messages": [{"role": "user", "content": prompt}]}
-    response = requests.post(CHAT_API_URL, headers=headers, json=payload)
+    payload = {
+        "model": "sarvam-m", 
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 4096
+    }
+    response = requests.post(CHAT_API_URL, headers=headers, json=payload, timeout=120)
     response.raise_for_status()
     response_text = response.json()["choices"][0]["message"]["content"]
     
@@ -1118,7 +1221,8 @@ def speak_text(text):
     if not TTS_AVAILABLE:
         return None
     try:
-        tts = gTTS(text[:500], lang="en")
+        # Limit TTS to first 1000 characters
+        tts = gTTS(text[:1000], lang="en")
         audio_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
         tts.save(audio_file.name)
         return audio_file.name
@@ -1445,57 +1549,51 @@ else:
         with st.chat_message("user"):
             st.markdown(user_message)
         
+        # Build context from files
         files_context = ""
         if current_session["files"]:
             files_context = "\n\n=== UPLOADED FILES ===\n"
             for fdata in current_session["files"]:
                 files_context += f"\n[FILE: {fdata['filename']} ({fdata.get('type', 'FILE')})]\n"
-                files_context += fdata['content'][:5000]
-                if len(fdata['content']) > 5000:
-                    files_context += "\n... (content truncated for context length)\n"
-            files_context += "=== END FILES ===\n\n"
+                # Limit file content to prevent context overflow
+                file_content = fdata['content'][:8000]
+                files_context += file_content
+                if len(fdata['content']) > 8000:
+                    files_context += "\n... (content truncated)\n"
+            files_context += "\n=== END FILES ===\n\n"
         
         with st.chat_message("assistant"):
             placeholder = st.empty()
             placeholder.markdown("🤔 Thinking...")
+            
             try:
+                # Build messages for API
                 messages_for_api = [{"role": "system", "content": SYSTEM_PROMPT}]
                 
-                conversation_messages = [m for m in current_session["messages"][1:] if m["role"] in ["user", "assistant"]]
+                # Get conversation history (limit to last 10 messages to prevent context overflow)
+                conversation_messages = [
+                    m for m in current_session["messages"][1:] 
+                    if m["role"] in ["user", "assistant"]
+                ][-10:]
                 
-                for i, m in enumerate(conversation_messages):
-                    if i == len(conversation_messages) - 1 and m["role"] == "user" and m["content"] == user_message:
-                        continue
-                    messages_for_api.append({"role": m["role"], "content": m["content"]})
+                for m in conversation_messages[:-1]:  # Exclude the current message
+                    messages_for_api.append({"role": m["role"], "content": m["content"][:2000]})
                 
+                # Add current message with file context
                 user_content = files_context + user_message if files_context else user_message
                 messages_for_api.append({"role": "user", "content": user_content})
                 
-                cleaned_messages = [messages_for_api[0]]
-                for i in range(1, len(messages_for_api)):
-                    current_msg = messages_for_api[i]
-                    if len(cleaned_messages) == 1 or cleaned_messages[-1]["role"] != current_msg["role"]:
-                        cleaned_messages.append(current_msg)
+                # Get AI response using the improved function
+                response_text = get_ai_response(messages_for_api)
                 
-                payload = {"model": MODEL, "messages": cleaned_messages}
-                headers = {
-                    "Authorization": f"Bearer {API_KEY}",
-                    "Content-Type": "application/json"
-                }
-                url = "https://api.sarvam.ai/v1/chat/completions"
-                resp = requests.post(url, headers=headers, json=payload, timeout=60)
-                
-                if resp.status_code != 200:
-                    response_text = f"⚠️ API Error {resp.status_code}\n\n{resp.text[:500]}"
-                else:
-                    data = resp.json()
-                    response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response.")
             except Exception as e:
-                response_text = f"❌ Error: {e}"
+                response_text = f"❌ Error: {str(e)}"
             
             placeholder.markdown(response_text)
             
+            # Generate audio for first part of response
             audio_file = speak_text(response_text) if TTS_AVAILABLE else None
+            
             current_session["messages"].append({
                 "role": "assistant",
                 "content": response_text,
@@ -1505,6 +1603,7 @@ else:
             
             if audio_file:
                 st.audio(audio_file, format="audio/mp3")
+            
             st.rerun()
 
 # ----------------------
