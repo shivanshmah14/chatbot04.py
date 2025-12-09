@@ -1006,7 +1006,7 @@ with st.sidebar:
     st.markdown("### 🧠 Model")
     
     if st.session_state.model == "shiva01":
-        st.markdown('<div class="model-box shiva01"><p class="model-name">🔱 Shiva0.1</p><p class="model-desc">Sarvam - Good for Hindi</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="model-box shiva01"><p class="model-name">🔱 Shiva0.1</p><p class="model-desc">Sarvam - Fast with maths and coding skills</p></div>', unsafe_allow_html=True)
         if st.button("🔄 Switch to Shiva0.2", use_container_width=True):
             st.session_state.model = "shiva02"
             st.rerun()
