@@ -12,108 +12,86 @@ import subprocess
 import sys
 
 # ----------------------
-# Auto-install missing packages
+# Auto-install packages
 # ----------------------
-def install_package(package_name):
+def install_package(pkg):
     try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package_name, "-q"])
+        subprocess.check_call([sys.executable, "-m", "pip", "install", pkg, "-q"])
         return True
     except:
         return False
 
-# Required packages
-REQUIRED_PACKAGES = {
-    'gtts': 'gtts',
-    'PyPDF2': 'PyPDF2',
-    'docx': 'python-docx',
-    'pptx': 'python-pptx',
-    'openpyxl': 'openpyxl',
-    'pandas': 'pandas',
-    'PIL': 'Pillow',
-    'deep_translator': 'deep-translator',
-    'fpdf': 'fpdf',
+PACKAGES = {
+    'gtts': 'gtts', 'PyPDF2': 'PyPDF2', 'docx': 'python-docx',
+    'pptx': 'python-pptx', 'pandas': 'pandas', 'PIL': 'Pillow',
+    'deep_translator': 'deep-translator', 'fpdf': 'fpdf',
     'speech_recognition': 'SpeechRecognition',
     'audio_recorder_streamlit': 'audio-recorder-streamlit'
 }
 
-for module_name, package_name in REQUIRED_PACKAGES.items():
+for mod, pkg in PACKAGES.items():
     try:
-        __import__(module_name)
+        __import__(mod)
     except ImportError:
-        install_package(package_name)
+        install_package(pkg)
 
 # Imports
 try:
     from gtts import gTTS
-    TTS_AVAILABLE = True
-except ImportError:
-    TTS_AVAILABLE = False
+    TTS_OK = True
+except:
+    TTS_OK = False
 
 try:
     import PyPDF2
-    PDF_SUPPORT = True
-except ImportError:
-    PDF_SUPPORT = False
+    PDF_OK = True
+except:
+    PDF_OK = False
 
 try:
     from docx import Document
-    from docx.shared import Pt
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
-    DOCX_SUPPORT = True
-except ImportError:
-    DOCX_SUPPORT = False
+    DOCX_OK = True
+except:
+    DOCX_OK = False
 
 try:
     import pptx
-    PPTX_SUPPORT = True
-except ImportError:
-    PPTX_SUPPORT = False
-
-try:
-    import openpyxl
-    import pandas as pd
-    EXCEL_SUPPORT = True
-except ImportError:
-    EXCEL_SUPPORT = False
+    PPTX_OK = True
+except:
+    PPTX_OK = False
 
 try:
     from PIL import Image
-    PIL_AVAILABLE = True
-except ImportError:
-    PIL_AVAILABLE = False
-
-try:
-    import pytesseract
-    OCR_SUPPORT = True
-except ImportError:
-    OCR_SUPPORT = False
+    PIL_OK = True
+except:
+    PIL_OK = False
 
 try:
     from deep_translator import GoogleTranslator
-    TRANSLATE_SUPPORT = True
-except ImportError:
-    TRANSLATE_SUPPORT = False
+    TRANS_OK = True
+except:
+    TRANS_OK = False
 
 try:
     from fpdf import FPDF
-    FPDF_AVAILABLE = True
-except ImportError:
-    FPDF_AVAILABLE = False
+    FPDF_OK = True
+except:
+    FPDF_OK = False
 
 try:
     import speech_recognition as sr
-    SPEECH_RECOGNITION_AVAILABLE = True
-except ImportError:
-    SPEECH_RECOGNITION_AVAILABLE = False
+    SR_OK = True
+except:
+    SR_OK = False
 
 try:
     from audio_recorder_streamlit import audio_recorder
-    AUDIO_RECORDER_AVAILABLE = True
-except ImportError:
-    AUDIO_RECORDER_AVAILABLE = False
+    AR_OK = True
+except:
+    AR_OK = False
 
 # ----------------------
-# Streamlit UI Setup
+# Page Config
 # ----------------------
 st.set_page_config(
     page_title="Shiva AI",
@@ -123,107 +101,280 @@ st.set_page_config(
 )
 
 # ----------------------
-# Custom CSS - White UI, Black Font, Mobile Friendly, Blue Toggle
+# 100% WHITE UI CSS - EVERYTHING WHITE, BLACK TEXT
 # ----------------------
 st.markdown("""
 <style>
-    /* ===== FORCE WHITE THEME EVERYWHERE ===== */
+    /* ==========================================
+       FORCE LIGHT MODE - OVERRIDE EVERYTHING
+       ========================================== */
+    
     :root {
         color-scheme: light only !important;
+        --primary-color: #2196F3 !important;
         --background-color: #ffffff !important;
+        --secondary-background-color: #f8f8f8 !important;
         --text-color: #000000 !important;
     }
     
-    * {
+    /* Force light mode on html */
+    html {
+        color-scheme: light only !important;
+        background-color: #ffffff !important;
+    }
+    
+    /* ==========================================
+       GLOBAL - EVERYTHING WHITE & BLACK TEXT
+       ========================================== */
+    
+    *, *::before, *::after {
         color-scheme: light only !important;
     }
     
-    html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"], .main, .stApp {
+    html, body, div, span, p, a, li, ul, ol, 
+    h1, h2, h3, h4, h5, h6, label, input, textarea, 
+    button, select, option, table, tr, td, th,
+    article, section, header, footer, main, nav {
         background-color: #ffffff !important;
         color: #000000 !important;
     }
     
-    /* All text black */
-    *, p, span, div, label, li, a, h1, h2, h3, h4, h5, h6,
-    .stMarkdown, .stMarkdown *, .stText, [class*="css"] {
+    /* ==========================================
+       STREAMLIT MAIN CONTAINERS
+       ========================================== */
+    
+    .stApp,
+    .main,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stAppViewContainer"] > div,
+    [data-testid="stAppViewContainer"] > div > div,
+    [data-testid="stVerticalBlock"],
+    [data-testid="stVerticalBlock"] > div,
+    [data-testid="block-container"],
+    .block-container,
+    .element-container,
+    [data-testid="element-container"],
+    .stMarkdown,
+    .stText {
+        background-color: #ffffff !important;
         color: #000000 !important;
     }
     
-    /* ===== SIDEBAR ===== */
+    /* ==========================================
+       HEADER
+       ========================================== */
+    
+    header,
+    [data-testid="stHeader"],
+    [data-testid="stHeader"] > div,
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* ==========================================
+       SIDEBAR - WHITE
+       ========================================== */
+    
     [data-testid="stSidebar"],
-    [data-testid="stSidebar"] > div:first-child,
-    [data-testid="stSidebar"] * {
+    [data-testid="stSidebar"] > div,
+    [data-testid="stSidebar"] > div > div,
+    [data-testid="stSidebar"] > div > div > div,
+    [data-testid="stSidebar"] *,
+    .css-1d391kg,
+    .css-1lcbmhc,
+    section[data-testid="stSidebar"],
+    section[data-testid="stSidebar"] > div {
         background-color: #f5f5f5 !important;
         color: #000000 !important;
     }
     
-    section[data-testid="stSidebar"] {
-        background-color: #f5f5f5 !important;
+    /* ==========================================
+       FILE UPLOADER - 100% WHITE
+       ========================================== */
+    
+    /* Main file uploader container */
+    .stFileUploader,
+    [data-testid="stFileUploader"],
+    [data-testid="stFileUploader"] > div,
+    [data-testid="stFileUploader"] > div > div,
+    [data-testid="stFileUploader"] section,
+    [data-testid="stFileUploader"] label,
+    [data-testid="stFileUploader"] span,
+    [data-testid="stFileUploader"] p,
+    [data-testid="stFileUploader"] button,
+    [data-testid="stFileUploader"] small {
+        background-color: #ffffff !important;
+        color: #000000 !important;
     }
     
-    /* ===== BUTTONS - Mobile Friendly ===== */
-    .stButton > button {
+    /* File uploader drop zone */
+    [data-testid="stFileUploader"] > section,
+    [data-testid="stFileUploader"] > div > section,
+    .stFileUploader > section,
+    .stFileUploader section,
+    [data-testid="stFileUploaderDropzone"],
+    [data-testid="stFileUploaderDropzoneInstructions"],
+    [data-testid="stFileUploaderDropzoneInstructions"] > div,
+    [data-testid="stFileUploaderDropzoneInstructions"] span,
+    [data-testid="stFileUploaderDropzoneInstructions"] p,
+    .uploadedFile,
+    .uploadedFileData {
         background-color: #ffffff !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        border: 2px dashed #cccccc !important;
+        border-radius: 10px !important;
+    }
+    
+    /* File uploader button */
+    [data-testid="stFileUploader"] button,
+    [data-testid="baseButton-secondary"],
+    .stFileUploader button {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #cccccc !important;
+    }
+    
+    /* Uploaded file info */
+    [data-testid="stFileUploader"] [data-testid="stMarkdownContainer"],
+    [data-testid="stFileUploader"] .uploadedFileName,
+    .stFileUploader .uploadedFile {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* File uploader SVG icons */
+    [data-testid="stFileUploader"] svg,
+    .stFileUploader svg {
+        fill: #000000 !important;
+        stroke: #000000 !important;
+    }
+    
+    /* ==========================================
+       BUTTONS - WHITE WITH BORDER
+       ========================================== */
+    
+    .stButton > button,
+    .stButton button,
+    button[kind="primary"],
+    button[kind="secondary"],
+    [data-testid="baseButton-primary"],
+    [data-testid="baseButton-secondary"],
+    .stDownloadButton > button,
+    .stDownloadButton button {
+        background-color: #ffffff !important;
+        background: #ffffff !important;
         color: #000000 !important;
         border: 2px solid #cccccc !important;
-        border-radius: 12px !important;
-        padding: 12px 20px !important;
-        font-size: 16px !important;
-        font-weight: 500 !important;
-        min-height: 48px !important;
-        touch-action: manipulation !important;
-        -webkit-tap-highlight-color: transparent !important;
+        border-radius: 10px !important;
+        min-height: 45px !important;
     }
     
-    .stButton > button:hover, .stButton > button:active {
+    .stButton > button:hover,
+    .stDownloadButton > button:hover {
         background-color: #f0f0f0 !important;
         border-color: #999999 !important;
-        transform: scale(0.98);
     }
     
-    .stButton > button[kind="primary"] {
+    /* Primary button - blue */
+    button[kind="primary"],
+    [data-testid="baseButton-primary"] {
         background-color: #2196F3 !important;
         color: #ffffff !important;
         border: none !important;
     }
     
-    /* ===== TEXT INPUTS ===== */
+    /* ==========================================
+       TEXT INPUTS & TEXTAREA - WHITE
+       ========================================== */
+    
+    input,
+    textarea,
+    .stTextInput input,
     .stTextInput > div > div > input,
+    .stTextArea textarea,
     .stTextArea > div > div > textarea,
-    input, textarea {
+    [data-testid="stTextInput"] input,
+    [data-testid="stTextArea"] textarea,
+    [data-baseweb="input"],
+    [data-baseweb="textarea"] {
         background-color: #ffffff !important;
+        background: #ffffff !important;
         color: #000000 !important;
         border: 2px solid #e0e0e0 !important;
         border-radius: 10px !important;
-        padding: 12px !important;
-        font-size: 16px !important;
-        min-height: 48px !important;
+        caret-color: #000000 !important;
     }
     
-    .stTextInput > div > div > input:focus,
-    .stTextArea > div > div > textarea:focus {
-        border-color: #2196F3 !important;
-        box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2) !important;
+    input::placeholder,
+    textarea::placeholder {
+        color: #888888 !important;
     }
     
-    /* ===== SELECT BOXES ===== */
+    /* ==========================================
+       CHAT INPUT - WHITE
+       ========================================== */
+    
+    [data-testid="stChatInput"],
+    [data-testid="stChatInput"] > div,
+    [data-testid="stChatInput"] textarea,
+    .stChatInputContainer,
+    .stChatInputContainer > div,
+    .stChatInputContainer textarea {
+        background-color: #ffffff !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        border-color: #e0e0e0 !important;
+    }
+    
+    /* ==========================================
+       CHAT MESSAGES - LIGHT GRAY
+       ========================================== */
+    
+    .stChatMessage,
+    [data-testid="stChatMessage"],
+    [data-testid="stChatMessage"] > div,
+    [data-testid="stChatMessageContent"],
+    .stChatMessage > div {
+        background-color: #f9f9f9 !important;
+        background: #f9f9f9 !important;
+        color: #000000 !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 15px !important;
+    }
+    
+    .stChatMessage *,
+    [data-testid="stChatMessage"] * {
+        color: #000000 !important;
+    }
+    
+    /* ==========================================
+       SELECT BOX / DROPDOWN - WHITE
+       ========================================== */
+    
+    .stSelectbox,
+    .stSelectbox > div,
     .stSelectbox > div > div,
-    .stSelectbox [data-baseweb="select"],
+    [data-baseweb="select"],
     [data-baseweb="select"] > div,
     [data-baseweb="popover"],
+    [data-baseweb="popover"] > div,
     [data-baseweb="menu"],
+    [data-baseweb="menu"] > div,
     [role="listbox"],
     [role="option"] {
         background-color: #ffffff !important;
+        background: #ffffff !important;
         color: #000000 !important;
     }
     
     [data-baseweb="menu"] li,
+    [data-baseweb="menu"] ul,
     [role="option"] {
         background-color: #ffffff !important;
         color: #000000 !important;
-        padding: 12px !important;
-        min-height: 44px !important;
     }
     
     [data-baseweb="menu"] li:hover,
@@ -231,697 +382,558 @@ st.markdown("""
         background-color: #e3f2fd !important;
     }
     
-    /* ===== CHAT MESSAGES ===== */
-    .stChatMessage, [data-testid="stChatMessage"] {
-        background-color: #f9f9f9 !important;
-        border: 1px solid #e0e0e0 !important;
-        border-radius: 15px !important;
-        padding: 15px !important;
-        margin: 10px 0 !important;
-    }
+    /* ==========================================
+       EXPANDER - WHITE
+       ========================================== */
     
-    .stChatMessage *, [data-testid="stChatMessage"] * {
-        color: #000000 !important;
-    }
-    
-    /* ===== CHAT INPUT ===== */
-    [data-testid="stChatInput"],
-    .stChatInputContainer,
-    .stChatInputContainer * {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-    
-    [data-testid="stChatInput"] textarea {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        border: 2px solid #e0e0e0 !important;
-        border-radius: 25px !important;
-        padding: 12px 20px !important;
-        font-size: 16px !important;
-    }
-    
-    /* ===== EXPANDER ===== */
     .streamlit-expanderHeader,
+    .streamlit-expanderContent,
     [data-testid="stExpander"],
-    [data-testid="stExpander"] * {
+    [data-testid="stExpander"] > div,
+    [data-testid="stExpander"] summary,
+    [data-testid="stExpander"] details,
+    details, summary {
+        background-color: #ffffff !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* ==========================================
+       SLIDER - WHITE
+       ========================================== */
+    
+    .stSlider,
+    .stSlider > div,
+    .stSlider label,
+    .stSlider p,
+    [data-testid="stSlider"],
+    [data-baseweb="slider"] {
         background-color: #ffffff !important;
         color: #000000 !important;
     }
     
-    .streamlit-expanderHeader {
-        border-radius: 10px !important;
-        padding: 15px !important;
-        min-height: 50px !important;
-    }
+    /* ==========================================
+       CHECKBOX - WHITE
+       ========================================== */
     
-    /* ===== FILE UPLOADER ===== */
-    .stFileUploader, [data-testid="stFileUploader"] {
-        background-color: #f9f9f9 !important;
-        border: 2px dashed #cccccc !important;
-        border-radius: 15px !important;
-        padding: 20px !important;
-    }
-    
-    .stFileUploader *, [data-testid="stFileUploader"] * {
+    .stCheckbox,
+    .stCheckbox > label,
+    .stCheckbox span,
+    [data-testid="stCheckbox"] {
+        background-color: #ffffff !important;
         color: #000000 !important;
     }
     
-    /* ===== SLIDERS ===== */
-    .stSlider > div > div > div {
+    /* ==========================================
+       ALERTS (INFO, SUCCESS, ERROR, WARNING)
+       ========================================== */
+    
+    .stAlert,
+    [data-testid="stAlert"],
+    [data-testid="stAlert"] > div,
+    .element-container .stAlert {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-radius: 10px !important;
+    }
+    
+    .stAlert *,
+    [data-testid="stAlert"] * {
+        color: #000000 !important;
+    }
+    
+    /* ==========================================
+       CODE BLOCKS - LIGHT GRAY
+       ========================================== */
+    
+    code, pre,
+    .stCodeBlock,
+    [data-testid="stCodeBlock"] {
+        background-color: #f5f5f5 !important;
+        color: #000000 !important;
+    }
+    
+    /* ==========================================
+       TOAST / NOTIFICATIONS
+       ========================================== */
+    
+    [data-testid="stToast"],
+    .stToast {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* ==========================================
+       SPINNER
+       ========================================== */
+    
+    .stSpinner,
+    .stSpinner > div {
+        background-color: transparent !important;
+    }
+    
+    /* ==========================================
+       AUDIO PLAYER
+       ========================================== */
+    
+    audio,
+    .stAudio,
+    [data-testid="stAudio"] {
+        background-color: #ffffff !important;
+    }
+    
+    /* ==========================================
+       DIVIDER
+       ========================================== */
+    
+    hr {
+        border-color: #e0e0e0 !important;
         background-color: #e0e0e0 !important;
     }
     
-    .stSlider [data-baseweb="slider"] div[role="slider"] {
-        background-color: #2196F3 !important;
+    /* ==========================================
+       LINKS
+       ========================================== */
+    
+    a, a:visited, a:hover, a:active {
+        color: #2196F3 !important;
     }
     
-    /* ===== CHECKBOXES ===== */
-    .stCheckbox label, .stCheckbox span {
-        color: #000000 !important;
-        font-size: 16px !important;
-    }
+    /* ==========================================
+       METRICS
+       ========================================== */
     
-    .stCheckbox > label > div[data-testid="stCheckbox"] > div:first-child {
-        width: 24px !important;
-        height: 24px !important;
-    }
-    
-    /* ===== DOWNLOAD BUTTONS ===== */
-    .stDownloadButton > button {
+    .stMetric,
+    [data-testid="stMetric"],
+    [data-testid="stMetricValue"],
+    [data-testid="stMetricLabel"] {
         background-color: #ffffff !important;
         color: #000000 !important;
-        border: 2px solid #2196F3 !important;
-        border-radius: 12px !important;
-        padding: 12px 20px !important;
-        min-height: 48px !important;
     }
     
-    .stDownloadButton > button:hover {
-        background-color: #e3f2fd !important;
+    /* ==========================================
+       COLUMNS
+       ========================================== */
+    
+    [data-testid="column"],
+    [data-testid="stHorizontalBlock"],
+    .stHorizontalBlock {
+        background-color: #ffffff !important;
     }
     
-    /* ===== ALERTS ===== */
-    .stAlert, [data-testid="stAlert"] {
-        border-radius: 12px !important;
-        padding: 15px !important;
-    }
+    /* ==========================================
+       TABS
+       ========================================== */
     
-    .stAlert *, [data-testid="stAlert"] * {
+    .stTabs,
+    [data-baseweb="tab-list"],
+    [data-baseweb="tab"],
+    [data-baseweb="tab-panel"] {
+        background-color: #ffffff !important;
         color: #000000 !important;
     }
     
-    /* ===== CODE BLOCKS ===== */
-    code, pre, .stCodeBlock {
-        background-color: #f5f5f5 !important;
+    /* ==========================================
+       RADIO BUTTONS
+       ========================================== */
+    
+    .stRadio,
+    .stRadio > div,
+    .stRadio label,
+    [data-testid="stRadio"] {
+        background-color: #ffffff !important;
         color: #000000 !important;
-        border-radius: 8px !important;
     }
     
-    /* ===== WELCOME CONTAINER ===== */
-    .welcome-container {
+    /* ==========================================
+       DATA EDITOR / TABLE
+       ========================================== */
+    
+    .stDataFrame,
+    [data-testid="stDataFrame"],
+    table, th, td, tr {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* ==========================================
+       MARKDOWN
+       ========================================== */
+    
+    .stMarkdown,
+    .stMarkdown *,
+    [data-testid="stMarkdownContainer"],
+    [data-testid="stMarkdownContainer"] * {
+        background-color: transparent !important;
+        color: #000000 !important;
+    }
+    
+    /* ==========================================
+       PROGRESS BAR
+       ========================================== */
+    
+    .stProgress,
+    .stProgress > div {
+        background-color: #ffffff !important;
+    }
+    
+    /* ==========================================
+       CUSTOM COMPONENTS
+       ========================================== */
+    
+    /* Model box */
+    .model-box {
+        border-radius: 15px;
+        padding: 15px;
+        text-align: center;
+        margin: 10px 0;
+    }
+    
+    .model-box.shiva01 {
+        background: linear-gradient(135deg, #ff9933, #ff6600) !important;
+    }
+    
+    .model-box.shiva02 {
+        background: linear-gradient(135deg, #2196F3, #1565C0) !important;
+    }
+    
+    .model-box p {
+        color: #ffffff !important;
+        background: transparent !important;
+    }
+    
+    .model-name {
+        font-size: 18px;
+        font-weight: bold;
+        margin: 0;
+    }
+    
+    .model-desc {
+        font-size: 12px;
+        margin: 5px 0 0 0;
+        opacity: 0.9;
+    }
+    
+    /* Chat model badge */
+    .chat-badge {
+        display: inline-block;
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    
+    .chat-badge.b01 {
+        background: linear-gradient(135deg, #ff9933, #ff6600) !important;
+        color: #ffffff !important;
+    }
+    
+    .chat-badge.b02 {
+        background: linear-gradient(135deg, #2196F3, #1565C0) !important;
+        color: #ffffff !important;
+    }
+    
+    .chat-badge p, .chat-badge span {
+        color: #ffffff !important;
+        background: transparent !important;
+    }
+    
+    /* Welcome */
+    .welcome-box {
         display: flex;
         justify-content: center;
         align-items: center;
         min-height: 50vh;
-        padding: 20px;
         text-align: center;
     }
     
     .welcome-title {
-        font-size: clamp(1.5rem, 5vw, 2.5rem);
+        font-size: 1.8rem;
         font-weight: 300;
         color: #000000 !important;
     }
     
-    /* ===== BLUE TOGGLE SWITCH ===== */
-    .toggle-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
-        padding: 15px;
-        background: #f5f5f5;
-        border-radius: 50px;
-        margin: 10px 0;
-    }
+    /* ==========================================
+       MOBILE RESPONSIVE
+       ========================================== */
     
-    .toggle-label {
-        font-size: 14px;
-        font-weight: 600;
-        color: #000000 !important;
-        white-space: nowrap;
-    }
-    
-    .toggle-label.active {
-        color: #2196F3 !important;
-    }
-    
-    .toggle-switch {
-        position: relative;
-        width: 70px;
-        height: 36px;
-        background: #2196F3;
-        border-radius: 50px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: none;
-        padding: 0;
-    }
-    
-    .toggle-switch:hover {
-        background: #1976D2;
-    }
-    
-    .toggle-switch::after {
-        content: '';
-        position: absolute;
-        top: 3px;
-        left: 3px;
-        width: 30px;
-        height: 30px;
-        background: white;
-        border-radius: 50%;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-    
-    .toggle-switch.active::after {
-        left: calc(100% - 33px);
-    }
-    
-    /* ===== MODEL BADGE ===== */
-    .model-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: 600;
-        margin-bottom: 15px;
-    }
-    
-    .model-shiva01 {
-        background: linear-gradient(135deg, #ff9933, #ff6600);
-        color: white !important;
-    }
-    
-    .model-shiva02 {
-        background: linear-gradient(135deg, #2196F3, #1565C0);
-        color: white !important;
-    }
-    
-    /* ===== MOBILE RESPONSIVE ===== */
     @media (max-width: 768px) {
         .main .block-container {
             padding: 1rem 0.5rem !important;
-            max-width: 100% !important;
         }
         
-        .stButton > button {
-            width: 100% !important;
-            padding: 15px !important;
-            font-size: 16px !important;
-        }
-        
-        .stTextArea > div > div > textarea {
-            font-size: 16px !important;
-        }
-        
-        h1 {
-            font-size: 1.5rem !important;
-        }
-        
-        h2 {
-            font-size: 1.25rem !important;
-        }
-        
-        h3 {
-            font-size: 1.1rem !important;
-        }
-        
-        .stExpander {
-            margin: 5px 0 !important;
-        }
-        
-        .streamlit-expanderHeader {
+        .stButton > button,
+        .stDownloadButton > button {
             padding: 12px !important;
             font-size: 14px !important;
+            min-height: 50px !important;
         }
         
-        [data-testid="column"] {
-            padding: 0 5px !important;
-        }
+        h1 { font-size: 1.4rem !important; }
+        h2 { font-size: 1.2rem !important; }
+        h3 { font-size: 1.1rem !important; }
         
-        .toggle-container {
-            flex-direction: row;
-            padding: 12px;
-            gap: 10px;
-        }
-        
-        .toggle-label {
-            font-size: 12px;
-        }
-        
-        .toggle-switch {
-            width: 60px;
-            height: 32px;
-        }
-        
-        .toggle-switch::after {
-            width: 26px;
-            height: 26px;
-        }
-        
-        .toggle-switch.active::after {
-            left: calc(100% - 29px);
+        /* Force white on mobile file uploader */
+        [data-testid="stFileUploader"],
+        [data-testid="stFileUploader"] *,
+        .stFileUploader,
+        .stFileUploader * {
+            background-color: #ffffff !important;
+            background: #ffffff !important;
+            color: #000000 !important;
         }
     }
     
-    /* ===== HIDE DARK MODE ELEMENTS ===== */
+    /* ==========================================
+       DARK MODE OVERRIDE - BLOCK COMPLETELY
+       ========================================== */
+    
+    @media (prefers-color-scheme: dark) {
+        html, body, .stApp, [data-testid="stAppViewContainer"],
+        [data-testid="stFileUploader"], [data-testid="stFileUploader"] *,
+        .stFileUploader, .stFileUploader *,
+        *, *::before, *::after {
+            background-color: #ffffff !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            color-scheme: light only !important;
+        }
+    }
+    
+    /* Hide any dark theme elements */
     [data-theme="dark"],
-    [data-testid="stHeader"] [data-theme="dark"] {
-        display: none !important;
-    }
-    
-    /* Force header white */
-    header, [data-testid="stHeader"] {
-        background-color: #ffffff !important;
-    }
-    
-    /* ===== SCROLLBAR ===== */
-    ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
-        border-radius: 10px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-        background: #a1a1a1;
-    }
-    
-    /* ===== TOAST ===== */
-    [data-testid="stToast"] {
+    .dark,
+    [class*="dark"] {
         background-color: #ffffff !important;
         color: #000000 !important;
-        border-radius: 12px !important;
-    }
-    
-    /* ===== METRIC ===== */
-    .stMetric, .stMetric * {
-        color: #000000 !important;
-    }
-    
-    /* ===== PLACEHOLDER ===== */
-    ::placeholder {
-        color: #888888 !important;
-        opacity: 1 !important;
-    }
-    
-    /* ===== DIVIDER ===== */
-    hr {
-        border-color: #e0e0e0 !important;
-        margin: 20px 0 !important;
-    }
-    
-    /* ===== LINKS ===== */
-    a {
-        color: #2196F3 !important;
-    }
-    
-    /* ===== SPINNER ===== */
-    .stSpinner > div {
-        border-top-color: #2196F3 !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ----------------------
-# API Configuration
+# API Config
 # ----------------------
-SARVAM_API_KEY = os.getenv("CHATBOT_API_KEY", "sk_h4gsam68_z6e2xo8u9aaleUaBshwjVyDk")
-SARVAM_API_URL = "https://api.sarvam.ai/v1/chat/completions"
-SARVAM_MODEL = "sarvam-m"
+SARVAM_KEY = os.getenv("CHATBOT_API_KEY", "sk_h4gsam68_z6e2xo8u9aaleUaBshwjVyDk")
+SARVAM_URL = "https://api.sarvam.ai/v1/chat/completions"
+GROQ_KEY = "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"
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+PRES_KEY = "sk_u0xsaah7_pxzQfsbxtI4S7SsXlLLIsjaa"
 
-GROQ_API_KEY = "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"
-GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL = "llama-3.1-8b-instant"
-
-PRESENTATION_API_KEY = "sk_u0xsaah7_pxzQfsbxtI4S7SsXlLLIsjaa"
-PEXELS_API_KEY = "3Y3jiJZ6WAL49N6lPsdlRbRZ6IZBfHZFHP86dr9yZfxFYoxedLLlDKAC"
-
-SYSTEM_PROMPT = (
-    "You are Shiva AI, an advanced intelligent assistant created by Shivansh Mahajan. "
-    "Provide helpful, accurate, and detailed responses. "
-    "Be professional, clear, and comprehensive in your answers."
-)
-
-SUPPORTED_LANGUAGES = {'en': 'English', 'de': 'German', 'fr': 'French', 'es': 'Spanish'}
-
-FLASHCARD_STYLE_HINTS = {
-    "qa": "Create Q&A flashcards with a clear question and concise answer.",
-    "cloze": "Create cloze deletion cards with fill-in-the-blank format.",
-    "term-def": "Create term-definition pairs.",
-    "mixed": "Mix different flashcard styles."
-}
-
-STORAGE_DIR = Path("shiva_ai_data")
-STORAGE_DIR.mkdir(exist_ok=True)
+SYSTEM = "You are Shiva AI, created by Shivansh Mahajan. Be helpful and professional."
+LANGS = {'en': 'English', 'de': 'German', 'fr': 'French', 'es': 'Spanish'}
+STORAGE = Path("shiva_data")
+STORAGE.mkdir(exist_ok=True)
 
 
 # ----------------------
-# Helper Functions
+# Functions
 # ----------------------
-def transcribe_audio(audio_bytes):
-    if not SPEECH_RECOGNITION_AVAILABLE:
-        return None, "Speech recognition not available"
+def transcribe(audio):
+    if not SR_OK:
+        return None, "Not available"
     try:
-        recognizer = sr.Recognizer()
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio:
-            temp_audio.write(audio_bytes)
-            temp_audio_path = temp_audio.name
-        with sr.AudioFile(temp_audio_path) as source:
-            audio_data = recognizer.record(source)
+        r = sr.Recognizer()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f:
+            f.write(audio)
+            p = f.name
+        with sr.AudioFile(p) as s:
+            a = r.record(s)
         try:
-            text = recognizer.recognize_google(audio_data)
-            os.unlink(temp_audio_path)
-            return text, None
-        except sr.UnknownValueError:
-            os.unlink(temp_audio_path)
-            return None, "Could not understand audio."
-        except sr.RequestError as e:
-            os.unlink(temp_audio_path)
-            return None, f"Service error: {e}"
+            t = r.recognize_google(a)
+            os.unlink(p)
+            return t, None
+        except:
+            os.unlink(p)
+            return None, "Could not understand"
     except Exception as e:
-        return None, f"Error: {e}"
+        return None, str(e)
 
 
-def get_ai_response_sarvam(messages, max_retries=3):
-    headers = {"Authorization": f"Bearer {SARVAM_API_KEY}", "Content-Type": "application/json"}
-    payload = {"model": SARVAM_MODEL, "messages": messages, "max_tokens": 4096, "temperature": 0.7}
-    
-    for attempt in range(max_retries):
-        try:
-            response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=120)
-            if response.status_code == 200:
-                data = response.json()
-                if "choices" in data and len(data["choices"]) > 0:
-                    return data["choices"][0].get("message", {}).get("content", "No response.")
-            elif response.status_code == 429:
-                import time
-                time.sleep(2 ** attempt)
-                continue
-            else:
-                return f"⚠️ Error {response.status_code}"
-        except requests.exceptions.Timeout:
-            continue
-        except Exception as e:
-            return f"❌ Error: {e}"
-    return "⚠️ Failed after retries."
+def ai_shiva01(msgs):
+    """Shiva0.1 = Sarvam"""
+    try:
+        r = requests.post(SARVAM_URL, headers={"Authorization": f"Bearer {SARVAM_KEY}", "Content-Type": "application/json"},
+                         json={"model": "sarvam-m", "messages": msgs, "max_tokens": 4096}, timeout=120)
+        if r.status_code == 200:
+            return r.json()["choices"][0]["message"]["content"]
+        return f"Error {r.status_code}"
+    except Exception as e:
+        return f"Error: {e}"
 
 
-def get_ai_response_groq(messages, max_retries=3):
-    headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
-    payload = {"model": GROQ_MODEL, "messages": messages, "max_tokens": 4096, "temperature": 0.7}
-    
-    for attempt in range(max_retries):
-        try:
-            response = requests.post(GROQ_API_URL, headers=headers, json=payload, timeout=60)
-            if response.status_code == 200:
-                data = response.json()
-                if "choices" in data and len(data["choices"]) > 0:
-                    return data["choices"][0].get("message", {}).get("content", "No response.")
-            elif response.status_code == 429:
-                import time
-                time.sleep(2 ** attempt)
-                continue
-            else:
-                return f"⚠️ Error {response.status_code}"
-        except requests.exceptions.Timeout:
-            continue
-        except Exception as e:
-            return f"❌ Error: {e}"
-    return "⚠️ Failed after retries."
+def ai_shiva02(msgs):
+    """Shiva0.2 = Groq"""
+    try:
+        r = requests.post(GROQ_URL, headers={"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"},
+                         json={"model": "llama-3.1-8b-instant", "messages": msgs, "max_tokens": 4096}, timeout=60)
+        if r.status_code == 200:
+            return r.json()["choices"][0]["message"]["content"]
+        return f"Error {r.status_code}"
+    except Exception as e:
+        return f"Error: {e}"
 
 
-def get_ai_response(messages, model_choice="shiva02"):
-    if model_choice == "shiva01":
-        return get_ai_response_sarvam(messages)
-    return get_ai_response_groq(messages)
+def ai_response(msgs, model):
+    return ai_shiva01(msgs) if model == "shiva01" else ai_shiva02(msgs)
 
 
-def generate_flashcards_from_text(text, n_cards=20, style="qa", focus="balanced", include_mnemonics=True, auto_tags=True):
-    system_prompt = f"""You are Shiva AI's flashcard creator. Generate flashcards with {focus} focus.
-Return ONLY JSON array: [{{"front": "Q?", "back": "A", "tags": ["tag"], "mnemonic": "tip"}}]
-Style: {FLASHCARD_STYLE_HINTS.get(style, "")}"""
-    
-    payload = {
-        "model": GROQ_MODEL,
-        "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": f"Generate {n_cards} flashcards:\n\n{text}"}],
-        "max_tokens": 4000,
-        "temperature": 0.7
-    }
-    headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
-    response = requests.post(GROQ_API_URL, headers=headers, json=payload, timeout=120)
-    response.raise_for_status()
-    content = response.json()["choices"][0]["message"]["content"].strip()
-    
-    if "```json" in content:
-        content = content.split("```json")[1]
-    if "```" in content:
-        content = content.split("```")[0]
-    content = content.strip()
-    
-    start_idx, end_idx = content.find("["), content.rfind("]") + 1
-    if start_idx != -1 and end_idx > start_idx:
-        content = content[start_idx:end_idx]
-    
-    data = json.loads(content)
-    cards = []
-    for c in data:
-        front, back = str(c.get("front", "")).strip(), str(c.get("back", "")).strip()
-        if front and back:
-            cards.append({"front": front, "back": back, "tags": c.get("tags") or [], "mnemonic": str(c.get("mnemonic", "")).strip()})
-    return cards
+def make_flashcards(text, n=10):
+    prompt = f"Generate {n} flashcards. Return ONLY JSON: [{{\"front\":\"Q\",\"back\":\"A\"}}]\n\nText: {text}"
+    try:
+        r = requests.post(GROQ_URL, headers={"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"},
+                         json={"model": "llama-3.1-8b-instant", "messages": [{"role": "user", "content": prompt}], "max_tokens": 4000}, timeout=120)
+        c = r.json()["choices"][0]["message"]["content"]
+        if "```" in c:
+            c = c.split("```")[1].replace("json", "")
+        s, e = c.find("["), c.rfind("]") + 1
+        return json.loads(c[s:e]) if s >= 0 else []
+    except:
+        return []
 
 
-def create_flashcard_text_file(cards):
-    text = "=" * 50 + "\n   FLASHCARDS - Made by Shiva AI\n" + "=" * 50 + "\n\n"
-    for i, c in enumerate(cards, 1):
-        text += f"Card {i}\n{'-'*30}\nFRONT: {c['front']}\nBACK: {c['back']}\n"
-        if c['tags']:
-            text += f"TAGS: {', '.join(c['tags'])}\n"
-        if c['mnemonic']:
-            text += f"MNEMONIC: {c['mnemonic']}\n"
-        text += "\n"
-    text += f"Total: {len(cards)} cards\nMade by Shiva AI\n"
-    return text
+def cards_txt(cards):
+    return "FLASHCARDS - Shiva AI\n" + "="*30 + "\n\n" + "\n\n".join([f"Q: {c['front']}\nA: {c['back']}" for c in cards])
 
 
-def create_flashcard_word_file(cards):
-    if not DOCX_SUPPORT:
+def cards_word(cards):
+    if not DOCX_OK:
         return None
     try:
-        doc = Document()
-        doc.add_heading("Flashcards - Made by Shiva AI", 0)
-        doc.add_paragraph("Created by Shivansh Mahajan")
+        d = Document()
+        d.add_heading("Flashcards - Shiva AI", 0)
         for i, c in enumerate(cards, 1):
-            doc.add_heading(f"Card {i}", level=1)
-            doc.add_paragraph(f"Front: {c['front']}")
-            doc.add_paragraph(f"Back: {c['back']}")
-            if c['tags']:
-                doc.add_paragraph(f"Tags: {', '.join(c['tags'])}")
-            if c['mnemonic']:
-                doc.add_paragraph(f"Mnemonic: {c['mnemonic']}")
-        buffer = io.BytesIO()
-        doc.save(buffer)
-        buffer.seek(0)
-        return buffer
+            d.add_paragraph(f"{i}. Q: {c['front']}")
+            d.add_paragraph(f"   A: {c['back']}")
+        b = io.BytesIO()
+        d.save(b)
+        b.seek(0)
+        return b
     except:
         return None
 
 
-def create_flashcard_pdf_file(cards):
-    if not FPDF_AVAILABLE:
+def cards_pdf(cards):
+    if not FPDF_OK:
         return None
     try:
-        pdf = FPDF()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.add_page()
-        pdf.set_font('Arial', 'B', 16)
-        pdf.cell(0, 10, 'Flashcards - Made by Shiva AI', 0, 1, 'C')
-        pdf.set_font('Arial', '', 11)
-        
+        p = FPDF()
+        p.add_page()
+        p.set_font('Arial', 'B', 14)
+        p.cell(0, 10, 'Flashcards - Shiva AI', 0, 1, 'C')
+        p.set_font('Arial', '', 11)
         for i, c in enumerate(cards, 1):
-            if pdf.get_y() > 250:
-                pdf.add_page()
-            pdf.set_font('Arial', 'B', 12)
-            pdf.cell(0, 10, f'Card {i}', 0, 1)
-            pdf.set_font('Arial', '', 11)
-            
-            front = c['front'].encode('latin-1', 'replace').decode('latin-1')
-            back = c['back'].encode('latin-1', 'replace').decode('latin-1')
-            
-            pdf.multi_cell(0, 6, f"Front: {front}")
-            pdf.multi_cell(0, 6, f"Back: {back}")
-            pdf.ln(5)
-        
-        buffer = io.BytesIO()
-        pdf_output = pdf.output(dest='S').encode('latin-1')
-        buffer.write(pdf_output)
-        buffer.seek(0)
-        return buffer
+            if p.get_y() > 250:
+                p.add_page()
+            q = c['front'].encode('latin-1', 'replace').decode('latin-1')
+            a = c['back'].encode('latin-1', 'replace').decode('latin-1')
+            p.multi_cell(0, 6, f"{i}. Q: {q}")
+            p.multi_cell(0, 6, f"   A: {a}")
+            p.ln(3)
+        b = io.BytesIO()
+        b.write(p.output(dest='S').encode('latin-1'))
+        b.seek(0)
+        return b
     except:
         return None
 
 
-def search_pexels_image(query):
+def make_pres(topic, n):
+    prompt = f"Generate {n} slides for '{topic}'. Return JSON: [{{\"title\":\"...\",\"content\":\"...\"}}]"
     try:
-        response = requests.get("https://api.pexels.com/v1/search", headers={"Authorization": PEXELS_API_KEY}, params={"query": query, "per_page": 1}, timeout=10)
-        if response.status_code == 200:
-            data = response.json()
-            if data.get("photos"):
-                return data["photos"][0]["src"].get("large")
+        r = requests.post(SARVAM_URL, headers={"Authorization": f"Bearer {PRES_KEY}", "Content-Type": "application/json"},
+                         json={"model": "sarvam-m", "messages": [{"role": "user", "content": prompt}], "max_tokens": 4096}, timeout=120)
+        c = r.json()["choices"][0]["message"]["content"]
+        if "```" in c:
+            c = c.split("```")[1].replace("json", "")
+        s, e = c.find("["), c.rfind("]") + 1
+        return json.loads(c[s:e]) if s >= 0 else []
     except:
-        pass
-    return None
+        return []
 
 
-def download_image(url):
+def translate(t, lang):
+    if not t or lang == 'en' or not TRANS_OK:
+        return t
     try:
-        response = requests.get(url, timeout=15)
-        if response.status_code == 200:
-            return io.BytesIO(response.content)
+        return GoogleTranslator(source='en', target=lang).translate(t)
     except:
-        pass
-    return None
+        return t
 
 
-def generate_english_presentation(topic, slide_count):
-    headers = {"Authorization": f"Bearer {PRESENTATION_API_KEY}", "Content-Type": "application/json"}
-    prompt = f"Generate {slide_count} slides for '{topic}'. Return JSON array with 'title' and 'content' keys only."
-    payload = {"model": "sarvam-m", "messages": [{"role": "user", "content": prompt}], "max_tokens": 4096}
-    response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=120)
-    response.raise_for_status()
-    text = response.json()["choices"][0]["message"]["content"]
-    if "```" in text:
-        text = text.split("```")[1] if "```json" in text else text.split("```")[1]
-    text = text.replace("json", "").strip()
-    start, end = text.find("["), text.rfind("]") + 1
-    return json.loads(text[start:end])
-
-
-def translate_content(text, lang):
-    if not text.strip() or lang == 'en' or not TRANSLATE_SUPPORT:
-        return text
-    try:
-        return GoogleTranslator(source='en', target=lang).translate(text)
-    except:
-        return text
-
-
-def create_powerpoint_presentation(slides, topic, lang_name, include_images=True, progress_callback=None):
+def make_pptx(slides, topic):
     from pptx import Presentation
     from pptx.util import Inches, Pt
-    from pptx.dml.color import RGBColor
     from pptx.enum.text import PP_ALIGN
     
     prs = Presentation()
     prs.slide_width, prs.slide_height = Inches(13.333), Inches(7.5)
     
-    # Title slide
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    title_box = slide.shapes.add_textbox(Inches(0.5), Inches(3), Inches(12.333), Inches(1.5))
-    p = title_box.text_frame.paragraphs[0]
-    p.text, p.font.size, p.font.bold, p.alignment = topic, Pt(48), True, PP_ALIGN.CENTER
+    # Title
+    s = prs.slides.add_slide(prs.slide_layouts[6])
+    tb = s.shapes.add_textbox(Inches(0.5), Inches(3), Inches(12.333), Inches(1.5))
+    p = tb.text_frame.paragraphs[0]
+    p.text, p.font.size, p.font.bold, p.alignment = topic, Pt(44), True, PP_ALIGN.CENTER
     
-    sub_box = slide.shapes.add_textbox(Inches(0.5), Inches(4.5), Inches(12.333), Inches(0.8))
-    p2 = sub_box.text_frame.paragraphs[0]
-    p2.text, p2.font.size, p2.alignment = f"Made by Shiva AI in {lang_name}", Pt(24), PP_ALIGN.CENTER
-    
-    for idx, s in enumerate(slides):
-        if progress_callback:
-            progress_callback(f"Slide {idx+1}...")
+    # Slides
+    for sl in slides:
         cs = prs.slides.add_slide(prs.slide_layouts[6])
-        tb = cs.shapes.add_textbox(Inches(0.4), Inches(0.5), Inches(12), Inches(1))
-        tp = tb.text_frame.paragraphs[0]
-        tp.text, tp.font.size, tp.font.bold = s['title'], Pt(32), True
+        t = cs.shapes.add_textbox(Inches(0.4), Inches(0.4), Inches(12), Inches(1))
+        t.text_frame.paragraphs[0].text = sl['title']
+        t.text_frame.paragraphs[0].font.size = Pt(28)
+        t.text_frame.paragraphs[0].font.bold = True
         
-        cb = cs.shapes.add_textbox(Inches(0.4), Inches(1.5), Inches(12), Inches(5.5))
-        cf = cb.text_frame
+        c = cs.shapes.add_textbox(Inches(0.4), Inches(1.3), Inches(12), Inches(5.5))
+        cf = c.text_frame
         cf.word_wrap = True
-        for i, line in enumerate(s.get('content', '').split('\n')):
-            line = line.strip().lstrip('•-*● ')
-            if not line:
-                continue
-            para = cf.paragraphs[0] if i == 0 else cf.add_paragraph()
-            para.text, para.font.size = f"• {line}", Pt(18)
+        for i, ln in enumerate(sl.get('content', '').split('\n')):
+            ln = ln.strip().lstrip('•-* ')
+            if ln:
+                para = cf.paragraphs[0] if i == 0 else cf.add_paragraph()
+                para.text, para.font.size = f"• {ln}", Pt(16)
     
-    # Thank you
+    # Thanks
     ts = prs.slides.add_slide(prs.slide_layouts[6])
     tb = ts.shapes.add_textbox(Inches(0.5), Inches(3), Inches(12.333), Inches(1.5))
     p = tb.text_frame.paragraphs[0]
-    p.text, p.font.size, p.font.bold, p.alignment = "Thank You!", Pt(60), True, PP_ALIGN.CENTER
+    p.text, p.font.size, p.font.bold, p.alignment = "Thank You!", Pt(50), True, PP_ALIGN.CENTER
     
-    buffer = io.BytesIO()
-    prs.save(buffer)
-    buffer.seek(0)
-    return buffer
+    b = io.BytesIO()
+    prs.save(b)
+    b.seek(0)
+    return b
 
 
-# Session helpers
-def get_user_id():
-    if "user_id" not in st.session_state:
-        st.session_state.user_id = str(uuid.uuid4())
-    return st.session_state.user_id
+def uid():
+    if "uid" not in st.session_state:
+        st.session_state.uid = str(uuid.uuid4())
+    return st.session_state.uid
 
 
-def get_sessions_file():
-    return STORAGE_DIR / f"user_{get_user_id()}_sessions.pkl"
-
-
-def save_sessions():
+def save():
     try:
-        with open(get_sessions_file(), 'wb') as f:
-            data = {sid: {k: v for k, v in s.items() if k != "audio_file"} for sid, s in st.session_state.chat_sessions.items()}
-            pickle.dump(data, f)
+        with open(STORAGE / f"{uid()}.pkl", 'wb') as f:
+            pickle.dump({k: {x: y for x, y in v.items() if x != "audio"} for k, v in st.session_state.chats.items()}, f)
     except:
         pass
 
 
-def load_sessions():
+def load():
     try:
-        if get_sessions_file().exists():
-            with open(get_sessions_file(), 'rb') as f:
+        p = STORAGE / f"{uid()}.pkl"
+        if p.exists():
+            with open(p, 'rb') as f:
                 return pickle.load(f)
     except:
         pass
     return None
 
 
-def format_size(b):
-    for u in ['B', 'KB', 'MB']:
-        if b < 1024:
-            return f"{b:.1f} {u}"
-        b /= 1024
-    return f"{b:.1f} GB"
-
-
-def speak_text(text):
-    if not TTS_AVAILABLE:
+def speak(t):
+    if not TTS_OK:
         return None
     try:
-        tts = gTTS(text[:1000], lang="en")
+        tts = gTTS(t[:1000], lang="en")
         f = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
         tts.save(f.name)
         return f.name
@@ -929,82 +941,57 @@ def speak_text(text):
         return None
 
 
-def chat_title(msg):
-    return msg[:40] + "..." if len(msg) > 40 else msg
-
-
-def get_session():
-    return st.session_state.chat_sessions[st.session_state.current_session_id]
-
-
 def new_chat():
     nid = str(uuid.uuid4())
-    st.session_state.chat_sessions[nid] = {
-        "messages": [{"role": "system", "content": SYSTEM_PROMPT}],
-        "files": [],
-        "title": "New Chat",
-        "created": datetime.now().strftime("%Y-%m-%d %H:%M")
-    }
-    st.session_state.current_session_id = nid
-    save_sessions()
+    st.session_state.chats[nid] = {"msgs": [{"role": "system", "content": SYSTEM}], "files": [], "title": "New Chat", "created": datetime.now().strftime("%Y-%m-%d %H:%M")}
+    st.session_state.cid = nid
+    save()
 
 
-def delete_chat(sid):
-    if len(st.session_state.chat_sessions) > 1:
-        del st.session_state.chat_sessions[sid]
-        if sid == st.session_state.current_session_id:
-            st.session_state.current_session_id = list(st.session_state.chat_sessions.keys())[0]
-        save_sessions()
+def del_chat(sid):
+    if len(st.session_state.chats) > 1:
+        del st.session_state.chats[sid]
+        if sid == st.session_state.cid:
+            st.session_state.cid = list(st.session_state.chats.keys())[0]
+        save()
         return True
     return False
 
 
-def extract_file(data, name):
+def extract(data, name):
     ext = Path(name).suffix.lower()
     try:
-        if ext == '.pdf' and PDF_SUPPORT:
-            pdf = PyPDF2.PdfReader(io.BytesIO(data))
-            return "\n".join([p.extract_text() or "" for p in pdf.pages])
-        elif ext in ['.docx', '.doc'] and DOCX_SUPPORT:
+        if ext == '.pdf' and PDF_OK:
+            return "\n".join([p.extract_text() or "" for p in PyPDF2.PdfReader(io.BytesIO(data)).pages])
+        elif ext == '.docx' and DOCX_OK:
             return "\n".join([p.text for p in Document(io.BytesIO(data)).paragraphs])
-        elif ext in ['.txt', '.py', '.js', '.html', '.css', '.json', '.md', '.csv']:
+        elif ext in ['.txt', '.py', '.js', '.json', '.md']:
             return data.decode('utf-8', errors='ignore')
     except:
         pass
-    return f"[File: {name}]"
-
-
-def file_icon(ext):
-    return {'pdf': '📕', '.docx': '📘', '.txt': '📄', '.py': '🐍', '.js': '💛'}.get(ext.lower(), '📎')
+    return f"[{name}]"
 
 
 # ----------------------
-# Session State Init
+# Init State
 # ----------------------
-get_user_id()
+uid()
 
-for key, default in [
-    ("app_mode", "chat"),
-    ("ppt_stage", "enter_details"),
-    ("flashcard_stage", "enter_text"),
-    ("generated_flashcards", []),
-    ("selected_model", "shiva02"),
-    ("last_processed_files", [])
-]:
-    if key not in st.session_state:
-        st.session_state[key] = default
+for k, v in [("mode", "chat"), ("ppt_st", "enter"), ("fc_st", "enter"), ("cards", []), ("model", "shiva02"), ("pfiles", [])]:
+    if k not in st.session_state:
+        st.session_state[k] = v
 
-if "chat_sessions" not in st.session_state:
-    loaded = load_sessions()
-    if loaded:
-        st.session_state.chat_sessions = loaded
-        st.session_state.current_session_id = list(loaded.keys())[0]
+if "chats" not in st.session_state:
+    ld = load()
+    if ld:
+        st.session_state.chats = ld
+        st.session_state.cid = list(ld.keys())[0]
     else:
-        st.session_state.chat_sessions = {}
+        st.session_state.chats = {}
         new_chat()
 
-if "current_session_id" not in st.session_state:
-    st.session_state.current_session_id = list(st.session_state.chat_sessions.keys())[0]
+if "cid" not in st.session_state:
+    st.session_state.cid = list(st.session_state.chats.keys())[0]
 
 
 # ----------------------
@@ -1012,327 +999,274 @@ if "current_session_id" not in st.session_state:
 # ----------------------
 with st.sidebar:
     st.markdown("## 🔱 Shiva AI")
-    st.markdown("*Made by Shivansh Mahajan*")
+    st.markdown("*By Shivansh Mahajan*")
     st.markdown("---")
     
-    # Blue Toggle for Model Selection
-    st.markdown("### 🧠 AI Model")
+    # Model Selection
+    st.markdown("### 🧠 Model")
     
-    current_model = st.session_state.selected_model
-    
-    # Toggle HTML
-    toggle_class = "active" if current_model == "shiva02" else ""
-    left_active = "" if current_model == "shiva02" else "active"
-    right_active = "active" if current_model == "shiva02" else ""
-    
-    st.markdown(f"""
-    <div class="toggle-container">
-        <span class="toggle-label {left_active}">Shiva0.1</span>
-        <div class="toggle-switch {toggle_class}" id="model-toggle"></div>
-        <span class="toggle-label {right_active}">Shiva0.2</span>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Actual toggle using checkbox (hidden but functional)
-    toggle_value = st.checkbox(
-        "Use Shiva0.2",
-        value=(current_model == "shiva02"),
-        key="model_toggle_checkbox",
-        label_visibility="collapsed"
-    )
-    
-    if toggle_value:
-        st.session_state.selected_model = "shiva02"
-        st.caption("⚡ Fast & great for multiple languages")
+    if st.session_state.model == "shiva01":
+        st.markdown('<div class="model-box shiva01"><p class="model-name">🔱 Shiva0.1</p><p class="model-desc">Sarvam - Good for Hindi</p></div>', unsafe_allow_html=True)
+        if st.button("🔄 Switch to Shiva0.2", use_container_width=True):
+            st.session_state.model = "shiva02"
+            st.rerun()
     else:
-        st.session_state.selected_model = "shiva01"
-        st.caption("🇮🇳 Good for Hindi & Indian languages")
+        st.markdown('<div class="model-box shiva02"><p class="model-name">🚀 Shiva0.2</p><p class="model-desc">Fast & multilingual</p></div>', unsafe_allow_html=True)
+        if st.button("🔄 Switch to Shiva0.1", use_container_width=True):
+            st.session_state.model = "shiva01"
+            st.rerun()
     
     st.markdown("---")
     
     if st.button("✨ New Chat", use_container_width=True):
-        st.session_state.app_mode = "chat"
+        st.session_state.mode = "chat"
         new_chat()
         st.rerun()
     
     if st.button("📊 Presentation", use_container_width=True):
-        st.session_state.app_mode = "presentation"
-        st.session_state.ppt_stage = "enter_details"
+        st.session_state.mode = "pres"
+        st.session_state.ppt_st = "enter"
         st.rerun()
     
     if st.button("📚 Flashcards", use_container_width=True):
-        st.session_state.app_mode = "flashcards"
-        st.session_state.flashcard_stage = "enter_text"
+        st.session_state.mode = "flash"
+        st.session_state.fc_st = "enter"
         st.rerun()
     
     st.markdown("---")
     
-    if st.session_state.app_mode == "chat":
+    if st.session_state.mode == "chat":
         st.markdown("### 💬 Chats")
-        for sid, sdata in sorted(st.session_state.chat_sessions.items(), key=lambda x: x[1].get("created", ""), reverse=True):
-            cols = st.columns([5, 1])
-            label = f"{'▶ ' if sid == st.session_state.current_session_id else ''}{sdata['title']}"
-            if cols[0].button(label, key=f"c_{sid}", use_container_width=True):
-                st.session_state.current_session_id = sid
+        for sid, s in sorted(st.session_state.chats.items(), key=lambda x: x[1].get("created", ""), reverse=True):
+            c1, c2 = st.columns([5, 1])
+            lbl = ("▶ " if sid == st.session_state.cid else "") + s["title"][:20]
+            if c1.button(lbl, key=f"c_{sid}", use_container_width=True):
+                st.session_state.cid = sid
                 st.rerun()
-            if cols[1].button("🗑️", key=f"d_{sid}"):
-                delete_chat(sid)
+            if c2.button("🗑️", key=f"d_{sid}"):
+                del_chat(sid)
                 st.rerun()
 
 
 # ----------------------
-# Main Content
+# Main
 # ----------------------
 
 # FLASHCARDS
-if st.session_state.app_mode == "flashcards":
-    st.markdown("# 📚 Flashcard Generator")
+if st.session_state.mode == "flash":
+    st.markdown("# 📚 Flashcards")
     st.markdown("*Made by Shiva AI*")
     st.markdown("---")
     
-    if st.session_state.flashcard_stage == "enter_text":
-        text = st.text_area("📝 Paste your text:", height=200, key="fc_text")
-        
-        c1, c2 = st.columns(2)
-        num = c1.slider("Cards", 5, 30, 10)
-        style = c2.selectbox("Style", ["qa", "cloze", "term-def", "mixed"])
+    if st.session_state.fc_st == "enter":
+        txt = st.text_area("📝 Text:", height=180)
+        num = st.slider("Cards", 5, 20, 10)
         
         if st.button("🚀 Generate", type="primary", use_container_width=True):
-            if text and len(text) >= 50:
-                with st.spinner("Generating..."):
-                    try:
-                        cards = generate_flashcards_from_text(text, num, style)
-                        if cards:
-                            st.session_state.generated_flashcards = cards
-                            st.session_state.flashcard_stage = "view_cards"
-                            st.rerun()
-                    except Exception as e:
-                        st.error(f"Error: {e}")
+            if txt and len(txt) >= 50:
+                with st.spinner("Creating..."):
+                    cards = make_flashcards(txt, num)
+                    if cards:
+                        st.session_state.cards = cards
+                        st.session_state.fc_st = "view"
+                        st.rerun()
             else:
-                st.error("Enter at least 50 characters.")
+                st.error("Need 50+ characters")
         
         if st.button("🏠 Back"):
-            st.session_state.app_mode = "chat"
+            st.session_state.mode = "chat"
             st.rerun()
     
-    elif st.session_state.flashcard_stage == "view_cards":
-        cards = st.session_state.generated_flashcards
-        st.success(f"✅ {len(cards)} flashcards generated!")
+    else:
+        cards = st.session_state.cards
+        st.success(f"✅ {len(cards)} cards!")
         
         for i, c in enumerate(cards, 1):
-            with st.expander(f"📝 {i}. {c['front'][:40]}..."):
-                st.info(f"**Q:** {c['front']}")
-                st.success(f"**A:** {c['back']}")
-                if c['tags']:
-                    st.write(f"Tags: {', '.join(c['tags'])}")
+            with st.expander(f"{i}. {c.get('front', '')[:40]}..."):
+                st.info(f"**Q:** {c.get('front', '')}")
+                st.success(f"**A:** {c.get('back', '')}")
         
         st.markdown("### 📥 Download")
         c1, c2, c3 = st.columns(3)
-        c1.download_button("📄 TXT", create_flashcard_text_file(cards), "flashcards.txt", use_container_width=True)
-        
-        word = create_flashcard_word_file(cards)
-        if word:
-            c2.download_button("📘 WORD", word, "flashcards.docx", use_container_width=True)
-        
-        pdf = create_flashcard_pdf_file(cards)
-        if pdf:
-            c3.download_button("📕 PDF", pdf, "flashcards.pdf", use_container_width=True)
+        c1.download_button("📄 TXT", cards_txt(cards), "cards.txt", use_container_width=True)
+        w = cards_word(cards)
+        if w:
+            c2.download_button("📘 WORD", w, "cards.docx", use_container_width=True)
+        p = cards_pdf(cards)
+        if p:
+            c3.download_button("📕 PDF", p, "cards.pdf", use_container_width=True)
         
         if st.button("🔄 More"):
-            st.session_state.flashcard_stage = "enter_text"
+            st.session_state.fc_st = "enter"
             st.rerun()
-        
         if st.button("🏠 Back"):
-            st.session_state.app_mode = "chat"
+            st.session_state.mode = "chat"
             st.rerun()
 
 
 # PRESENTATION
-elif st.session_state.app_mode == "presentation":
-    st.markdown("# 📊 Presentation Generator")
+elif st.session_state.mode == "pres":
+    st.markdown("# 📊 Presentation")
     st.markdown("*Made by Shiva AI*")
+    st.markdown("---")
     
-    if st.session_state.ppt_stage == "enter_details":
-        topic = st.text_input("Topic:")
-        lang = st.selectbox("Language", list(SUPPORTED_LANGUAGES.keys()), format_func=lambda x: SUPPORTED_LANGUAGES[x])
-        slides = st.slider("Slides", 2, 10, 5)
+    if st.session_state.ppt_st == "enter":
+        topic = st.text_input("📝 Topic:")
+        lang = st.selectbox("🌐 Language", list(LANGS.keys()), format_func=lambda x: LANGS[x])
+        n = st.slider("📊 Slides", 3, 10, 5)
         
         if st.button("🚀 Create", type="primary", use_container_width=True):
             if topic:
                 with st.spinner("Creating..."):
                     try:
-                        content = generate_english_presentation(topic, slides)
-                        t_topic = translate_content(topic, lang)
-                        t_slides = [{"title": translate_content(s["title"], lang), "content": translate_content(s["content"], lang)} for s in content]
-                        ppt = create_powerpoint_presentation(t_slides, t_topic, SUPPORTED_LANGUAGES[lang])
-                        st.session_state.ppt_file = ppt
-                        st.session_state.ppt_name = f"{topic}_shiva.pptx"
-                        st.session_state.ppt_stage = "download"
+                        slides = make_pres(topic, n)
+                        t_topic = translate(topic, lang)
+                        t_slides = [{"title": translate(s["title"], lang), "content": translate(s["content"], lang)} for s in slides]
+                        st.session_state.ppt = make_pptx(t_slides, t_topic)
+                        st.session_state.ppt_name = f"{topic}.pptx"
+                        st.session_state.ppt_st = "done"
                         st.rerun()
                     except Exception as e:
-                        st.error(f"Error: {e}")
+                        st.error(str(e))
         
         if st.button("🏠 Back"):
-            st.session_state.app_mode = "chat"
+            st.session_state.mode = "chat"
             st.rerun()
     
-    elif st.session_state.ppt_stage == "download":
+    else:
         st.balloons()
         st.success("✅ Ready!")
-        st.download_button("📥 Download PPTX", st.session_state.ppt_file, st.session_state.ppt_name, use_container_width=True)
+        st.download_button("📥 Download", st.session_state.ppt, st.session_state.ppt_name, use_container_width=True)
         
         if st.button("🔄 Another"):
-            st.session_state.ppt_stage = "enter_details"
+            st.session_state.ppt_st = "enter"
             st.rerun()
-        
         if st.button("🏠 Back"):
-            st.session_state.app_mode = "chat"
+            st.session_state.mode = "chat"
             st.rerun()
 
 
 # CHAT
 else:
-    session = get_session()
+    chat = st.session_state.chats[st.session_state.cid]
     
-    # Model badge
-    if st.session_state.selected_model == "shiva01":
-        st.markdown('<div class="model-badge model-shiva01">🔱 Shiva0.1</div>', unsafe_allow_html=True)
+    # Badge
+    if st.session_state.model == "shiva01":
+        st.markdown('<span class="chat-badge b01">🔱 Shiva0.1</span>', unsafe_allow_html=True)
     else:
-        st.markdown('<div class="model-badge model-shiva02">🚀 Shiva0.2</div>', unsafe_allow_html=True)
+        st.markdown('<span class="chat-badge b02">🚀 Shiva0.2</span>', unsafe_allow_html=True)
     
     # Messages
-    user_msgs = [m for m in session["messages"] if m["role"] == "user"]
+    user_msgs = [m for m in chat["msgs"] if m["role"] == "user"]
     
     if not user_msgs:
-        st.markdown("""
-        <div class="welcome-container">
-            <h1 class="welcome-title">🔱 How can Shiva AI help you?</h1>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div class="welcome-box"><h1 class="welcome-title">🔱 How can Shiva AI help?</h1></div>', unsafe_allow_html=True)
     else:
-        for msg in session["messages"]:
-            if msg["role"] == "system":
+        for m in chat["msgs"]:
+            if m["role"] == "system":
                 continue
-            with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
-                if msg["role"] == "assistant" and msg.get("audio_file"):
-                    st.audio(msg["audio_file"])
+            with st.chat_message(m["role"]):
+                st.markdown(m["content"])
+                if m["role"] == "assistant" and m.get("audio"):
+                    st.audio(m["audio"])
     
     st.markdown("---")
     
-    # Voice input
-    if AUDIO_RECORDER_AVAILABLE:
+    # Voice
+    if AR_OK:
         st.markdown("### 🎤 Voice")
-        c1, c2 = st.columns([1, 3])
-        
+        c1, c2 = st.columns([1, 4])
         with c1:
-            audio = audio_recorder(text="", recording_color="#e74c3c", neutral_color="#2196F3", icon_size="2x")
-        
+            aud = audio_recorder(text="", recording_color="#e74c3c", neutral_color="#2196F3", icon_size="2x")
         with c2:
-            if audio:
-                with st.spinner("🔊 Processing..."):
-                    text, err = transcribe_audio(audio)
-                    if text:
-                        st.success(f"📝 {text}")
+            if aud:
+                with st.spinner("Processing..."):
+                    txt, err = transcribe(aud)
+                    if txt:
+                        st.success(f"📝 {txt}")
                         if st.button("📤 Send"):
-                            if session["title"] == "New Chat":
-                                session["title"] = chat_title(text)
-                            session["messages"].append({"role": "user", "content": text})
-                            save_sessions()
-                            
-                            msgs = [{"role": "system", "content": SYSTEM_PROMPT}]
-                            msgs.extend([{"role": m["role"], "content": m["content"]} for m in session["messages"][-10:] if m["role"] in ["user", "assistant"]])
-                            
-                            resp = get_ai_response(msgs, st.session_state.selected_model)
-                            session["messages"].append({"role": "assistant", "content": resp, "audio_file": speak_text(resp)})
-                            save_sessions()
+                            if chat["title"] == "New Chat":
+                                chat["title"] = txt[:25] + "..."
+                            chat["msgs"].append({"role": "user", "content": txt})
+                            save()
+                            msgs = [{"role": "system", "content": SYSTEM}] + [{"role": m["role"], "content": m["content"]} for m in chat["msgs"][-10:] if m["role"] in ["user", "assistant"]]
+                            resp = ai_response(msgs, st.session_state.model)
+                            chat["msgs"].append({"role": "assistant", "content": resp, "audio": speak(resp)})
+                            save()
                             st.rerun()
                     elif err:
                         st.error(err)
-        
         st.markdown("---")
     
-    # File upload
-    files = st.file_uploader("📎 Files", accept_multiple_files=True, type=['pdf', 'docx', 'txt', 'py', 'js', 'json', 'md'])
+    # Files
+    files = st.file_uploader("📎 Files", accept_multiple_files=True, type=['pdf', 'docx', 'txt', 'py', 'json', 'md'])
     
     if files:
         names = [f.name for f in files]
-        if names != st.session_state.last_processed_files:
-            st.session_state.last_processed_files = names
+        if names != st.session_state.pfiles:
+            st.session_state.pfiles = names
             for f in files:
                 data = f.read()
-                content = extract_file(data, f.name)
-                if "files" not in session:
-                    session["files"] = []
-                if not any(x["filename"] == f.name for x in session["files"]):
-                    session["files"].append({"filename": f.name, "content": content, "size": len(data)})
-            save_sessions()
+                content = extract(data, f.name)
+                if "files" not in chat:
+                    chat["files"] = []
+                if not any(x["name"] == f.name for x in chat["files"]):
+                    chat["files"].append({"name": f.name, "content": content, "size": len(data)})
+            save()
             st.rerun()
     
-    if session.get("files"):
-        st.markdown("#### 📁 Attached")
-        for i, f in enumerate(session["files"]):
+    if chat.get("files"):
+        for i, f in enumerate(chat["files"]):
             c1, c2 = st.columns([6, 1])
-            c1.write(f"📎 **{f['filename']}** ({format_size(f['size'])})")
+            c1.write(f"📎 {f['name']}")
             if c2.button("❌", key=f"rf_{i}"):
-                session["files"] = [x for x in session["files"] if x["filename"] != f["filename"]]
-                save_sessions()
+                chat["files"] = [x for x in chat["files"] if x["name"] != f["name"]]
+                save()
                 st.rerun()
         st.markdown("---")
     
-    # Chat input
-    user_input = st.chat_input("Ask Shiva AI...")
+    # Input
+    inp = st.chat_input("Ask Shiva AI...")
     
-    if user_input:
-        if session["title"] == "New Chat":
-            session["title"] = chat_title(user_input)
+    if inp:
+        if chat["title"] == "New Chat":
+            chat["title"] = inp[:25] + "..."
         
-        session["messages"].append({"role": "user", "content": user_input})
-        save_sessions()
+        chat["msgs"].append({"role": "user", "content": inp})
+        save()
         
         with st.chat_message("user"):
-            st.markdown(user_input)
+            st.markdown(inp)
         
         # Context
         ctx = ""
-        if session.get("files"):
-            ctx = "\n\n=== FILES ===\n"
-            for f in session["files"]:
-                ctx += f"\n[{f['filename']}]\n{f['content'][:3000]}\n"
-            ctx += "=== END ===\n\n"
+        if chat.get("files"):
+            ctx = "\n[FILES]\n" + "\n".join([f"[{f['name']}]\n{f['content'][:2000]}" for f in chat["files"]]) + "\n[/FILES]\n\n"
         
         with st.chat_message("assistant"):
-            placeholder = st.empty()
-            model_name = "Shiva0.1" if st.session_state.selected_model == "shiva01" else "Shiva0.2"
-            placeholder.markdown(f"🔱 {model_name} is thinking...")
+            ph = st.empty()
+            nm = "Shiva0.1" if st.session_state.model == "shiva01" else "Shiva0.2"
+            ph.markdown(f"🔱 {nm} thinking...")
             
             try:
-                msgs = [{"role": "system", "content": SYSTEM_PROMPT}]
-                recent = [m for m in session["messages"] if m["role"] in ["user", "assistant"]][-10:]
+                msgs = [{"role": "system", "content": SYSTEM}]
+                recent = [m for m in chat["msgs"] if m["role"] in ["user", "assistant"]][-10:]
                 for m in recent[:-1]:
                     msgs.append({"role": m["role"], "content": m["content"][:2000]})
-                msgs.append({"role": "user", "content": ctx + user_input if ctx else user_input})
-                
-                resp = get_ai_response(msgs, st.session_state.selected_model)
+                msgs.append({"role": "user", "content": ctx + inp if ctx else inp})
+                resp = ai_response(msgs, st.session_state.model)
             except Exception as e:
-                resp = f"❌ Error: {e}"
+                resp = f"Error: {e}"
             
-            placeholder.markdown(resp)
-            
-            audio = speak_text(resp) if TTS_AVAILABLE else None
-            session["messages"].append({"role": "assistant", "content": resp, "audio_file": audio})
-            save_sessions()
-            
-            if audio:
-                st.audio(audio)
-            
+            ph.markdown(resp)
+            aud = speak(resp) if TTS_OK else None
+            chat["msgs"].append({"role": "assistant", "content": resp, "audio": aud})
+            save()
+            if aud:
+                st.audio(aud)
             st.rerun()
 
 
 # Footer
 st.markdown("---")
-st.markdown("""
-<div style="text-align: center; padding: 20px;">
-    <p><strong>🔱 Shiva AI</strong> - Made by Shivansh Mahajan</p>
-</div>
-""", unsafe_allow_html=True)
+st.markdown('<div style="text-align:center;padding:15px;"><p><strong>🔱 Shiva AI</strong> - Made by Shivansh Mahajan</p></div>', unsafe_allow_html=True)
