@@ -101,520 +101,158 @@ st.set_page_config(
 )
 
 # ----------------------
-# 100% WHITE UI CSS - EVERYTHING WHITE, BLACK TEXT
+# 100% WHITE UI CSS
 # ----------------------
 st.markdown("""
 <style>
-    /* ==========================================
-       FORCE LIGHT MODE - OVERRIDE EVERYTHING
-       ========================================== */
-    
     :root {
         color-scheme: light only !important;
-        --primary-color: #2196F3 !important;
-        --background-color: #ffffff !important;
-        --secondary-background-color: #f8f8f8 !important;
-        --text-color: #000000 !important;
     }
     
-    /* Force light mode on html */
-    html {
-        color-scheme: light only !important;
-        background-color: #ffffff !important;
-    }
-    
-    /* ==========================================
-       GLOBAL - EVERYTHING WHITE & BLACK TEXT
-       ========================================== */
-    
-    *, *::before, *::after {
+    html, body, *, *::before, *::after {
         color-scheme: light only !important;
     }
     
-    html, body, div, span, p, a, li, ul, ol, 
-    h1, h2, h3, h4, h5, h6, label, input, textarea, 
-    button, select, option, table, tr, td, th,
-    article, section, header, footer, main, nav {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-    
-    /* ==========================================
-       STREAMLIT MAIN CONTAINERS
-       ========================================== */
-    
-    .stApp,
-    .main,
-    [data-testid="stAppViewContainer"],
+    html, body, div, span, p, a, li, ul, ol, h1, h2, h3, h4, h5, h6, 
+    label, input, textarea, button, select, option, table, tr, td, th,
+    article, section, header, footer, main, nav,
+    .stApp, .main, [data-testid="stAppViewContainer"], 
     [data-testid="stAppViewContainer"] > div,
-    [data-testid="stAppViewContainer"] > div > div,
-    [data-testid="stVerticalBlock"],
-    [data-testid="stVerticalBlock"] > div,
-    [data-testid="block-container"],
-    .block-container,
-    .element-container,
-    [data-testid="element-container"],
-    .stMarkdown,
-    .stText {
+    [data-testid="stVerticalBlock"], .block-container,
+    .element-container, .stMarkdown, .stText {
         background-color: #ffffff !important;
         color: #000000 !important;
     }
     
-    /* ==========================================
-       HEADER
-       ========================================== */
-    
-    header,
-    [data-testid="stHeader"],
-    [data-testid="stHeader"] > div,
-    [data-testid="stToolbar"],
-    [data-testid="stDecoration"] {
+    header, [data-testid="stHeader"], [data-testid="stToolbar"] {
         background-color: #ffffff !important;
-        color: #000000 !important;
     }
     
-    /* ==========================================
-       SIDEBAR - WHITE
-       ========================================== */
-    
-    [data-testid="stSidebar"],
-    [data-testid="stSidebar"] > div,
-    [data-testid="stSidebar"] > div > div,
-    [data-testid="stSidebar"] > div > div > div,
-    [data-testid="stSidebar"] *,
-    .css-1d391kg,
-    .css-1lcbmhc,
-    section[data-testid="stSidebar"],
-    section[data-testid="stSidebar"] > div {
+    [data-testid="stSidebar"], [data-testid="stSidebar"] > div,
+    [data-testid="stSidebar"] * {
         background-color: #f5f5f5 !important;
         color: #000000 !important;
     }
     
-    /* ==========================================
-       FILE UPLOADER - 100% WHITE
-       ========================================== */
-    
-    /* Main file uploader container */
-    .stFileUploader,
-    [data-testid="stFileUploader"],
+    /* File Uploader - WHITE */
+    .stFileUploader, [data-testid="stFileUploader"],
     [data-testid="stFileUploader"] > div,
-    [data-testid="stFileUploader"] > div > div,
     [data-testid="stFileUploader"] section,
     [data-testid="stFileUploader"] label,
     [data-testid="stFileUploader"] span,
-    [data-testid="stFileUploader"] p,
     [data-testid="stFileUploader"] button,
-    [data-testid="stFileUploader"] small {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-    
-    /* File uploader drop zone */
-    [data-testid="stFileUploader"] > section,
-    [data-testid="stFileUploader"] > div > section,
-    .stFileUploader > section,
-    .stFileUploader section,
     [data-testid="stFileUploaderDropzone"],
     [data-testid="stFileUploaderDropzoneInstructions"],
-    [data-testid="stFileUploaderDropzoneInstructions"] > div,
-    [data-testid="stFileUploaderDropzoneInstructions"] span,
-    [data-testid="stFileUploaderDropzoneInstructions"] p,
-    .uploadedFile,
-    .uploadedFileData {
+    [data-testid="stFileUploaderDropzoneInstructions"] * {
         background-color: #ffffff !important;
         background: #ffffff !important;
         color: #000000 !important;
+    }
+    
+    [data-testid="stFileUploader"] > section,
+    .stFileUploader section {
+        background-color: #ffffff !important;
         border: 2px dashed #cccccc !important;
         border-radius: 10px !important;
     }
     
-    /* File uploader button */
-    [data-testid="stFileUploader"] button,
-    [data-testid="baseButton-secondary"],
-    .stFileUploader button {
+    /* Buttons */
+    .stButton > button, .stDownloadButton > button {
         background-color: #ffffff !important;
-        color: #000000 !important;
-        border: 1px solid #cccccc !important;
-    }
-    
-    /* Uploaded file info */
-    [data-testid="stFileUploader"] [data-testid="stMarkdownContainer"],
-    [data-testid="stFileUploader"] .uploadedFileName,
-    .stFileUploader .uploadedFile {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-    
-    /* File uploader SVG icons */
-    [data-testid="stFileUploader"] svg,
-    .stFileUploader svg {
-        fill: #000000 !important;
-        stroke: #000000 !important;
-    }
-    
-    /* ==========================================
-       BUTTONS - WHITE WITH BORDER
-       ========================================== */
-    
-    .stButton > button,
-    .stButton button,
-    button[kind="primary"],
-    button[kind="secondary"],
-    [data-testid="baseButton-primary"],
-    [data-testid="baseButton-secondary"],
-    .stDownloadButton > button,
-    .stDownloadButton button {
-        background-color: #ffffff !important;
-        background: #ffffff !important;
         color: #000000 !important;
         border: 2px solid #cccccc !important;
         border-radius: 10px !important;
         min-height: 45px !important;
     }
     
-    .stButton > button:hover,
-    .stDownloadButton > button:hover {
+    .stButton > button:hover, .stDownloadButton > button:hover {
         background-color: #f0f0f0 !important;
-        border-color: #999999 !important;
     }
     
-    /* Primary button - blue */
-    button[kind="primary"],
-    [data-testid="baseButton-primary"] {
-        background-color: #2196F3 !important;
-        color: #ffffff !important;
-        border: none !important;
-    }
-    
-    /* ==========================================
-       TEXT INPUTS & TEXTAREA - WHITE
-       ========================================== */
-    
-    input,
-    textarea,
-    .stTextInput input,
-    .stTextInput > div > div > input,
-    .stTextArea textarea,
-    .stTextArea > div > div > textarea,
-    [data-testid="stTextInput"] input,
-    [data-testid="stTextArea"] textarea,
-    [data-baseweb="input"],
-    [data-baseweb="textarea"] {
+    /* Inputs */
+    input, textarea, .stTextInput input, .stTextArea textarea,
+    [data-testid="stTextInput"] input, [data-testid="stTextArea"] textarea {
         background-color: #ffffff !important;
-        background: #ffffff !important;
         color: #000000 !important;
         border: 2px solid #e0e0e0 !important;
         border-radius: 10px !important;
-        caret-color: #000000 !important;
     }
     
-    input::placeholder,
-    textarea::placeholder {
-        color: #888888 !important;
-    }
-    
-    /* ==========================================
-       CHAT INPUT - WHITE
-       ========================================== */
-    
-    [data-testid="stChatInput"],
-    [data-testid="stChatInput"] > div,
-    [data-testid="stChatInput"] textarea,
-    .stChatInputContainer,
-    .stChatInputContainer > div,
-    .stChatInputContainer textarea {
+    /* Chat */
+    [data-testid="stChatInput"], [data-testid="stChatInput"] textarea,
+    .stChatInputContainer, .stChatInputContainer textarea {
         background-color: #ffffff !important;
-        background: #ffffff !important;
         color: #000000 !important;
-        border-color: #e0e0e0 !important;
     }
     
-    /* ==========================================
-       CHAT MESSAGES - LIGHT GRAY
-       ========================================== */
-    
-    .stChatMessage,
-    [data-testid="stChatMessage"],
-    [data-testid="stChatMessage"] > div,
-    [data-testid="stChatMessageContent"],
-    .stChatMessage > div {
+    .stChatMessage, [data-testid="stChatMessage"] {
         background-color: #f9f9f9 !important;
-        background: #f9f9f9 !important;
         color: #000000 !important;
         border: 1px solid #e0e0e0 !important;
         border-radius: 15px !important;
     }
     
-    .stChatMessage *,
-    [data-testid="stChatMessage"] * {
+    .stChatMessage *, [data-testid="stChatMessage"] * {
         color: #000000 !important;
     }
     
-    /* ==========================================
-       SELECT BOX / DROPDOWN - WHITE
-       ========================================== */
-    
-    .stSelectbox,
-    .stSelectbox > div,
-    .stSelectbox > div > div,
-    [data-baseweb="select"],
-    [data-baseweb="select"] > div,
-    [data-baseweb="popover"],
-    [data-baseweb="popover"] > div,
-    [data-baseweb="menu"],
-    [data-baseweb="menu"] > div,
-    [role="listbox"],
-    [role="option"] {
-        background-color: #ffffff !important;
-        background: #ffffff !important;
-        color: #000000 !important;
-    }
-    
-    [data-baseweb="menu"] li,
-    [data-baseweb="menu"] ul,
-    [role="option"] {
+    /* Select */
+    .stSelectbox, .stSelectbox > div, [data-baseweb="select"],
+    [data-baseweb="menu"], [data-baseweb="menu"] li, [role="option"] {
         background-color: #ffffff !important;
         color: #000000 !important;
     }
     
-    [data-baseweb="menu"] li:hover,
-    [role="option"]:hover {
+    [data-baseweb="menu"] li:hover, [role="option"]:hover {
         background-color: #e3f2fd !important;
     }
     
-    /* ==========================================
-       EXPANDER - WHITE
-       ========================================== */
-    
-    .streamlit-expanderHeader,
-    .streamlit-expanderContent,
-    [data-testid="stExpander"],
-    [data-testid="stExpander"] > div,
-    [data-testid="stExpander"] summary,
-    [data-testid="stExpander"] details,
-    details, summary {
-        background-color: #ffffff !important;
-        background: #ffffff !important;
-        color: #000000 !important;
-    }
-    
-    /* ==========================================
-       SLIDER - WHITE
-       ========================================== */
-    
-    .stSlider,
-    .stSlider > div,
-    .stSlider label,
-    .stSlider p,
-    [data-testid="stSlider"],
-    [data-baseweb="slider"] {
+    /* Expander */
+    .streamlit-expanderHeader, [data-testid="stExpander"],
+    [data-testid="stExpander"] *, details, summary {
         background-color: #ffffff !important;
         color: #000000 !important;
     }
     
-    /* ==========================================
-       CHECKBOX - WHITE
-       ========================================== */
-    
-    .stCheckbox,
-    .stCheckbox > label,
-    .stCheckbox span,
-    [data-testid="stCheckbox"] {
+    /* Slider, Checkbox */
+    .stSlider, .stSlider *, .stCheckbox, .stCheckbox * {
         background-color: #ffffff !important;
         color: #000000 !important;
     }
     
-    /* ==========================================
-       ALERTS (INFO, SUCCESS, ERROR, WARNING)
-       ========================================== */
-    
-    .stAlert,
-    [data-testid="stAlert"],
-    [data-testid="stAlert"] > div,
-    .element-container .stAlert {
+    /* Alerts */
+    .stAlert, [data-testid="stAlert"], .stAlert * {
         background-color: #ffffff !important;
         color: #000000 !important;
-        border-radius: 10px !important;
     }
     
-    .stAlert *,
-    [data-testid="stAlert"] * {
-        color: #000000 !important;
-    }
-    
-    /* ==========================================
-       CODE BLOCKS - LIGHT GRAY
-       ========================================== */
-    
-    code, pre,
-    .stCodeBlock,
-    [data-testid="stCodeBlock"] {
+    /* Code */
+    code, pre {
         background-color: #f5f5f5 !important;
         color: #000000 !important;
     }
     
-    /* ==========================================
-       TOAST / NOTIFICATIONS
-       ========================================== */
-    
-    [data-testid="stToast"],
-    .stToast {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-    
-    /* ==========================================
-       SPINNER
-       ========================================== */
-    
-    .stSpinner,
-    .stSpinner > div {
-        background-color: transparent !important;
-    }
-    
-    /* ==========================================
-       AUDIO PLAYER
-       ========================================== */
-    
-    audio,
-    .stAudio,
-    [data-testid="stAudio"] {
-        background-color: #ffffff !important;
-    }
-    
-    /* ==========================================
-       DIVIDER
-       ========================================== */
-    
-    hr {
-        border-color: #e0e0e0 !important;
-        background-color: #e0e0e0 !important;
-    }
-    
-    /* ==========================================
-       LINKS
-       ========================================== */
-    
-    a, a:visited, a:hover, a:active {
-        color: #2196F3 !important;
-    }
-    
-    /* ==========================================
-       METRICS
-       ========================================== */
-    
-    .stMetric,
-    [data-testid="stMetric"],
-    [data-testid="stMetricValue"],
-    [data-testid="stMetricLabel"] {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-    
-    /* ==========================================
-       COLUMNS
-       ========================================== */
-    
-    [data-testid="column"],
-    [data-testid="stHorizontalBlock"],
-    .stHorizontalBlock {
-        background-color: #ffffff !important;
-    }
-    
-    /* ==========================================
-       TABS
-       ========================================== */
-    
-    .stTabs,
-    [data-baseweb="tab-list"],
-    [data-baseweb="tab"],
-    [data-baseweb="tab-panel"] {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-    
-    /* ==========================================
-       RADIO BUTTONS
-       ========================================== */
-    
-    .stRadio,
-    .stRadio > div,
-    .stRadio label,
-    [data-testid="stRadio"] {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-    
-    /* ==========================================
-       DATA EDITOR / TABLE
-       ========================================== */
-    
-    .stDataFrame,
-    [data-testid="stDataFrame"],
-    table, th, td, tr {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-    
-    /* ==========================================
-       MARKDOWN
-       ========================================== */
-    
-    .stMarkdown,
-    .stMarkdown *,
-    [data-testid="stMarkdownContainer"],
-    [data-testid="stMarkdownContainer"] * {
-        background-color: transparent !important;
-        color: #000000 !important;
-    }
-    
-    /* ==========================================
-       PROGRESS BAR
-       ========================================== */
-    
-    .stProgress,
-    .stProgress > div {
-        background-color: #ffffff !important;
-    }
-    
-    /* ==========================================
-       CUSTOM COMPONENTS
-       ========================================== */
-    
-    /* Model box */
+    /* Custom */
     .model-box {
         border-radius: 15px;
         padding: 15px;
         text-align: center;
         margin: 10px 0;
     }
-    
     .model-box.shiva01 {
         background: linear-gradient(135deg, #ff9933, #ff6600) !important;
     }
-    
     .model-box.shiva02 {
         background: linear-gradient(135deg, #2196F3, #1565C0) !important;
     }
-    
     .model-box p {
         color: #ffffff !important;
         background: transparent !important;
-    }
-    
-    .model-name {
-        font-size: 18px;
-        font-weight: bold;
         margin: 0;
     }
+    .model-name { font-size: 18px; font-weight: bold; }
+    .model-desc { font-size: 12px; opacity: 0.9; }
     
-    .model-desc {
-        font-size: 12px;
-        margin: 5px 0 0 0;
-        opacity: 0.9;
-    }
-    
-    /* Chat model badge */
     .chat-badge {
         display: inline-block;
         padding: 6px 15px;
@@ -623,23 +261,15 @@ st.markdown("""
         font-weight: 600;
         margin-bottom: 10px;
     }
-    
     .chat-badge.b01 {
         background: linear-gradient(135deg, #ff9933, #ff6600) !important;
         color: #ffffff !important;
     }
-    
     .chat-badge.b02 {
         background: linear-gradient(135deg, #2196F3, #1565C0) !important;
         color: #ffffff !important;
     }
     
-    .chat-badge p, .chat-badge span {
-        color: #ffffff !important;
-        background: transparent !important;
-    }
-    
-    /* Welcome */
     .welcome-box {
         display: flex;
         justify-content: center;
@@ -647,66 +277,32 @@ st.markdown("""
         min-height: 50vh;
         text-align: center;
     }
-    
     .welcome-title {
         font-size: 1.8rem;
         font-weight: 300;
         color: #000000 !important;
     }
     
-    /* ==========================================
-       MOBILE RESPONSIVE
-       ========================================== */
+    hr { border-color: #e0e0e0 !important; }
     
     @media (max-width: 768px) {
-        .main .block-container {
-            padding: 1rem 0.5rem !important;
-        }
-        
-        .stButton > button,
-        .stDownloadButton > button {
-            padding: 12px !important;
-            font-size: 14px !important;
-            min-height: 50px !important;
-        }
-        
+        .main .block-container { padding: 1rem 0.5rem !important; }
+        .stButton > button { min-height: 50px !important; }
         h1 { font-size: 1.4rem !important; }
-        h2 { font-size: 1.2rem !important; }
-        h3 { font-size: 1.1rem !important; }
         
-        /* Force white on mobile file uploader */
-        [data-testid="stFileUploader"],
-        [data-testid="stFileUploader"] *,
-        .stFileUploader,
-        .stFileUploader * {
+        [data-testid="stFileUploader"], [data-testid="stFileUploader"] * {
             background-color: #ffffff !important;
             background: #ffffff !important;
             color: #000000 !important;
         }
     }
     
-    /* ==========================================
-       DARK MODE OVERRIDE - BLOCK COMPLETELY
-       ========================================== */
-    
     @media (prefers-color-scheme: dark) {
-        html, body, .stApp, [data-testid="stAppViewContainer"],
-        [data-testid="stFileUploader"], [data-testid="stFileUploader"] *,
-        .stFileUploader, .stFileUploader *,
-        *, *::before, *::after {
+        *, html, body, .stApp, [data-testid="stFileUploader"], [data-testid="stFileUploader"] * {
             background-color: #ffffff !important;
-            background: #ffffff !important;
             color: #000000 !important;
             color-scheme: light only !important;
         }
-    }
-    
-    /* Hide any dark theme elements */
-    [data-theme="dark"],
-    .dark,
-    [class*="dark"] {
-        background-color: #ffffff !important;
-        color: #000000 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -714,11 +310,19 @@ st.markdown("""
 # ----------------------
 # API Config
 # ----------------------
+# Shiva0.1 = Sarvam
 SARVAM_KEY = os.getenv("CHATBOT_API_KEY", "sk_h4gsam68_z6e2xo8u9aaleUaBshwjVyDk")
 SARVAM_URL = "https://api.sarvam.ai/v1/chat/completions"
+
+# Shiva0.2 = Groq
 GROQ_KEY = "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"
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+
+# Presentation
 PRES_KEY = "sk_u0xsaah7_pxzQfsbxtI4S7SsXlLLIsjaa"
+
+# Pexels API for images
+PEXELS_API_KEY = "3Y3jiJZ6WAL49N6lPsdlRbRZ6IZBfHZFHP86dr9yZfxFYoxedLLlDKAC"
 
 SYSTEM = "You are Shiva AI, created by Shivansh Mahajan. Be helpful and professional."
 LANGS = {'en': 'English', 'de': 'German', 'fr': 'French', 'es': 'Spanish'}
@@ -727,7 +331,79 @@ STORAGE.mkdir(exist_ok=True)
 
 
 # ----------------------
-# Functions
+# Pexels Image Functions
+# ----------------------
+def search_pexels_image(query):
+    """Search for an image on Pexels and return the image URL."""
+    try:
+        url = "https://api.pexels.com/v1/search"
+        headers = {"Authorization": PEXELS_API_KEY}
+        params = {
+            "query": query,
+            "per_page": 1,
+            "orientation": "landscape",
+            "size": "large"
+        }
+        
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("photos") and len(data["photos"]) > 0:
+                return data["photos"][0]["src"].get("large") or data["photos"][0]["src"].get("medium")
+        return None
+    except Exception:
+        return None
+
+
+def download_image(url):
+    """Download image from URL and return as BytesIO."""
+    try:
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(url, headers=headers, timeout=15)
+        
+        if response.status_code == 200:
+            img_data = io.BytesIO(response.content)
+            
+            if PIL_OK:
+                from PIL import Image as PILImage
+                img = PILImage.open(img_data)
+                
+                if img.mode in ('RGBA', 'P'):
+                    img = img.convert('RGB')
+                
+                output = io.BytesIO()
+                img.save(output, format='JPEG', quality=90)
+                output.seek(0)
+                return output
+            else:
+                img_data.seek(0)
+                return img_data
+        return None
+    except Exception:
+        return None
+
+
+def generate_image_keywords(title):
+    """Generate search keywords from slide title."""
+    stop_words = {
+        'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+        'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
+        'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
+        'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need',
+        'introduction', 'conclusion', 'overview', 'summary', 'key', 'points'
+    }
+    
+    words = title.lower().split()
+    keywords = [w for w in words if w not in stop_words and len(w) > 2]
+    
+    if keywords:
+        return ' '.join(keywords[:3])
+    return title
+
+
+# ----------------------
+# AI Functions
 # ----------------------
 def transcribe(audio):
     if not SR_OK:
@@ -839,7 +515,10 @@ def cards_pdf(cards):
 
 
 def make_pres(topic, n):
-    prompt = f"Generate {n} slides for '{topic}'. Return JSON: [{{\"title\":\"...\",\"content\":\"...\"}}]"
+    """Generate presentation content using Shiva0.1"""
+    prompt = f"""You are an expert. Generate {n} slides for '{topic}'.
+Return ONLY a JSON array: [{{"title":"...", "content":"bullet1\\nbullet2\\nbullet3"}}]
+No markdown, no extra text."""
     try:
         r = requests.post(SARVAM_URL, headers={"Authorization": f"Bearer {PRES_KEY}", "Content-Type": "application/json"},
                          json={"model": "sarvam-m", "messages": [{"role": "user", "content": prompt}], "max_tokens": 4096}, timeout=120)
@@ -861,49 +540,226 @@ def translate(t, lang):
         return t
 
 
-def make_pptx(slides, topic):
+def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=None):
+    """Create PowerPoint with Pexels images"""
     from pptx import Presentation
     from pptx.util import Inches, Pt
+    from pptx.dml.color import RGBColor
     from pptx.enum.text import PP_ALIGN
     
     prs = Presentation()
-    prs.slide_width, prs.slide_height = Inches(13.333), Inches(7.5)
+    prs.slide_width = Inches(13.333)
+    prs.slide_height = Inches(7.5)
     
-    # Title
-    s = prs.slides.add_slide(prs.slide_layouts[6])
-    tb = s.shapes.add_textbox(Inches(0.5), Inches(3), Inches(12.333), Inches(1.5))
-    p = tb.text_frame.paragraphs[0]
-    p.text, p.font.size, p.font.bold, p.alignment = topic, Pt(44), True, PP_ALIGN.CENTER
+    # ===== TITLE SLIDE =====
+    if progress_callback:
+        progress_callback("Creating title slide...")
     
-    # Slides
-    for sl in slides:
-        cs = prs.slides.add_slide(prs.slide_layouts[6])
-        t = cs.shapes.add_textbox(Inches(0.4), Inches(0.4), Inches(12), Inches(1))
-        t.text_frame.paragraphs[0].text = sl['title']
-        t.text_frame.paragraphs[0].font.size = Pt(28)
-        t.text_frame.paragraphs[0].font.bold = True
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    
+    # Add background image
+    if include_images:
+        if progress_callback:
+            progress_callback("Finding title image...")
+        img_url = search_pexels_image(topic)
+        if img_url:
+            img_data = download_image(img_url)
+            if img_data:
+                try:
+                    slide.shapes.add_picture(
+                        img_data, 
+                        Inches(0), Inches(0),
+                        width=prs.slide_width, 
+                        height=prs.slide_height
+                    )
+                except:
+                    pass
+    
+    # Dark overlay
+    overlay = slide.shapes.add_shape(1, Inches(0), Inches(0), prs.slide_width, prs.slide_height)
+    overlay.fill.solid()
+    overlay.fill.fore_color.rgb = RGBColor(0, 0, 0)
+    overlay.line.fill.background()
+    
+    # Set transparency
+    try:
+        from pptx.oxml.ns import qn
+        from pptx.oxml import parse_xml
+        spPr = overlay._sp.spPr
+        fill = spPr.find(qn('a:solidFill'))
+        if fill is not None:
+            srgbClr = fill.find(qn('a:srgbClr'))
+            if srgbClr is not None:
+                alpha = parse_xml('<a:alpha xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" val="50000"/>')
+                srgbClr.append(alpha)
+    except:
+        pass
+    
+    # Title text
+    title_box = slide.shapes.add_textbox(Inches(0.5), Inches(2.5), Inches(12.333), Inches(1.5))
+    title_frame = title_box.text_frame
+    title_frame.word_wrap = True
+    title_para = title_frame.paragraphs[0]
+    title_para.text = topic
+    title_para.font.size = Pt(54)
+    title_para.font.bold = True
+    title_para.font.color.rgb = RGBColor(255, 255, 255)
+    title_para.alignment = PP_ALIGN.CENTER
+    
+    # Subtitle
+    sub_box = slide.shapes.add_textbox(Inches(0.5), Inches(4.2), Inches(12.333), Inches(0.8))
+    sub_para = sub_box.text_frame.paragraphs[0]
+    sub_para.text = f"Made by Shiva AI in {lang_name}"
+    sub_para.font.size = Pt(24)
+    sub_para.font.color.rgb = RGBColor(200, 200, 200)
+    sub_para.alignment = PP_ALIGN.CENTER
+    
+    # ===== CONTENT SLIDES =====
+    for idx, slide_data in enumerate(slides):
+        if progress_callback:
+            progress_callback(f"Creating slide {idx + 1} of {len(slides)}...")
         
-        c = cs.shapes.add_textbox(Inches(0.4), Inches(1.3), Inches(12), Inches(5.5))
-        cf = c.text_frame
-        cf.word_wrap = True
-        for i, ln in enumerate(sl.get('content', '').split('\n')):
-            ln = ln.strip().lstrip('•-* ')
-            if ln:
-                para = cf.paragraphs[0] if i == 0 else cf.add_paragraph()
-                para.text, para.font.size = f"• {ln}", Pt(16)
+        content_slide = prs.slides.add_slide(prs.slide_layouts[6])
+        
+        # Add image on right side
+        img_added = False
+        if include_images:
+            keywords = generate_image_keywords(slide_data['title'])
+            if progress_callback:
+                progress_callback(f"Finding image for: {keywords}...")
+            
+            img_url = search_pexels_image(keywords)
+            if img_url:
+                img_data = download_image(img_url)
+                if img_data:
+                    try:
+                        content_slide.shapes.add_picture(
+                            img_data,
+                            Inches(7.0), Inches(0),
+                            width=Inches(6.333),
+                            height=prs.slide_height
+                        )
+                        img_added = True
+                    except:
+                        pass
+        
+        # Left accent bar
+        left_bar = content_slide.shapes.add_shape(1, Inches(0), Inches(0), Inches(0.15), prs.slide_height)
+        left_bar.fill.solid()
+        left_bar.fill.fore_color.rgb = RGBColor(0, 120, 215)
+        left_bar.line.fill.background()
+        
+        # Slide title
+        title_width = Inches(6.0) if img_added else Inches(12)
+        title_box = content_slide.shapes.add_textbox(Inches(0.4), Inches(0.5), title_width, Inches(1))
+        title_frame = title_box.text_frame
+        title_frame.word_wrap = True
+        title_para = title_frame.paragraphs[0]
+        title_para.text = slide_data['title']
+        title_para.font.size = Pt(36)
+        title_para.font.bold = True
+        title_para.font.color.rgb = RGBColor(0, 0, 0)
+        
+        # Underline
+        underline = content_slide.shapes.add_shape(1, Inches(0.4), Inches(1.4), Inches(2), Inches(0.04))
+        underline.fill.solid()
+        underline.fill.fore_color.rgb = RGBColor(0, 120, 215)
+        underline.line.fill.background()
+        
+        # Content
+        content_width = Inches(6.0) if img_added else Inches(12)
+        content_box = content_slide.shapes.add_textbox(Inches(0.4), Inches(1.7), content_width, Inches(5.3))
+        content_frame = content_box.text_frame
+        content_frame.word_wrap = True
+        
+        content_text = slide_data.get('content', '')
+        content_lines = content_text.split('\n')
+        
+        for i, line in enumerate(content_lines):
+            line = line.strip()
+            if not line:
+                continue
+            line = line.lstrip('•-*●→▪ ')
+            
+            if i == 0:
+                para = content_frame.paragraphs[0]
+            else:
+                para = content_frame.add_paragraph()
+            
+            para.text = f"● {line}"
+            para.font.size = Pt(20)
+            para.font.color.rgb = RGBColor(50, 50, 50)
+            para.space_before = Pt(12)
+            para.space_after = Pt(6)
     
-    # Thanks
-    ts = prs.slides.add_slide(prs.slide_layouts[6])
-    tb = ts.shapes.add_textbox(Inches(0.5), Inches(3), Inches(12.333), Inches(1.5))
-    p = tb.text_frame.paragraphs[0]
-    p.text, p.font.size, p.font.bold, p.alignment = "Thank You!", Pt(50), True, PP_ALIGN.CENTER
+    # ===== THANK YOU SLIDE =====
+    if progress_callback:
+        progress_callback("Creating thank you slide...")
     
-    b = io.BytesIO()
-    prs.save(b)
-    b.seek(0)
-    return b
+    thank_slide = prs.slides.add_slide(prs.slide_layouts[6])
+    
+    # Background image
+    if include_images:
+        img_url = search_pexels_image("thank you success celebration")
+        if img_url:
+            img_data = download_image(img_url)
+            if img_data:
+                try:
+                    thank_slide.shapes.add_picture(
+                        img_data,
+                        Inches(0), Inches(0),
+                        width=prs.slide_width,
+                        height=prs.slide_height
+                    )
+                except:
+                    pass
+    
+    # Dark overlay
+    overlay = thank_slide.shapes.add_shape(1, Inches(0), Inches(0), prs.slide_width, prs.slide_height)
+    overlay.fill.solid()
+    overlay.fill.fore_color.rgb = RGBColor(0, 0, 0)
+    overlay.line.fill.background()
+    
+    try:
+        from pptx.oxml.ns import qn
+        from pptx.oxml import parse_xml
+        spPr = overlay._sp.spPr
+        fill = spPr.find(qn('a:solidFill'))
+        if fill is not None:
+            srgbClr = fill.find(qn('a:srgbClr'))
+            if srgbClr is not None:
+                alpha = parse_xml('<a:alpha xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" val="55000"/>')
+                srgbClr.append(alpha)
+    except:
+        pass
+    
+    # Thank you text
+    thank_box = thank_slide.shapes.add_textbox(Inches(0.5), Inches(2.5), Inches(12.333), Inches(1.5))
+    thank_para = thank_box.text_frame.paragraphs[0]
+    thank_para.text = "Thank You!"
+    thank_para.font.size = Pt(72)
+    thank_para.font.bold = True
+    thank_para.font.color.rgb = RGBColor(255, 255, 255)
+    thank_para.alignment = PP_ALIGN.CENTER
+    
+    # Subtitle
+    q_box = thank_slide.shapes.add_textbox(Inches(0.5), Inches(4.5), Inches(12.333), Inches(0.8))
+    q_para = q_box.text_frame.paragraphs[0]
+    q_para.text = "Made by Shiva AI"
+    q_para.font.size = Pt(28)
+    q_para.font.color.rgb = RGBColor(180, 180, 180)
+    q_para.alignment = PP_ALIGN.CENTER
+    
+    # Save
+    buf = io.BytesIO()
+    prs.save(buf)
+    buf.seek(0)
+    return buf
 
 
+# ----------------------
+# Session Helpers
+# ----------------------
 def uid():
     if "uid" not in st.session_state:
         st.session_state.uid = str(uuid.uuid4())
@@ -1006,7 +862,7 @@ with st.sidebar:
     st.markdown("### 🧠 Model")
     
     if st.session_state.model == "shiva01":
-        st.markdown('<div class="model-box shiva01"><p class="model-name">🔱 Shiva0.1</p><p class="model-desc">Sarvam - Fast with maths and coding skills</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="model-box shiva01"><p class="model-name">🔱 Shiva0.1</p><p class="model-desc">Sarvam - Good for Hindi</p></div>', unsafe_allow_html=True)
         if st.button("🔄 Switch to Shiva0.2", use_container_width=True):
             st.session_state.model = "shiva02"
             st.rerun()
@@ -1049,7 +905,7 @@ with st.sidebar:
 
 
 # ----------------------
-# Main
+# Main Content
 # ----------------------
 
 # FLASHCARDS
@@ -1106,28 +962,44 @@ if st.session_state.mode == "flash":
 
 # PRESENTATION
 elif st.session_state.mode == "pres":
-    st.markdown("# 📊 Presentation")
-    st.markdown("*Made by Shiva AI*")
+    st.markdown("# 📊 Presentation Generator")
+    st.markdown("*Made by Shiva AI with HD Images*")
     st.markdown("---")
     
     if st.session_state.ppt_st == "enter":
         topic = st.text_input("📝 Topic:")
         lang = st.selectbox("🌐 Language", list(LANGS.keys()), format_func=lambda x: LANGS[x])
         n = st.slider("📊 Slides", 3, 10, 5)
+        include_images = st.checkbox("🖼️ Include HD images from Pexels", value=True)
         
-        if st.button("🚀 Create", type="primary", use_container_width=True):
+        if st.button("🚀 Create Presentation", type="primary", use_container_width=True):
             if topic:
-                with st.spinner("Creating..."):
+                status_text = st.empty()
+                
+                def update_status(msg):
+                    status_text.info(msg)
+                
+                with st.spinner("Creating presentation..."):
                     try:
+                        update_status("🤖 Generating content...")
                         slides = make_pres(topic, n)
-                        t_topic = translate(topic, lang)
-                        t_slides = [{"title": translate(s["title"], lang), "content": translate(s["content"], lang)} for s in slides]
-                        st.session_state.ppt = make_pptx(t_slides, t_topic)
-                        st.session_state.ppt_name = f"{topic}.pptx"
-                        st.session_state.ppt_st = "done"
-                        st.rerun()
+                        
+                        if not slides:
+                            st.error("Failed to generate slides. Try again.")
+                        else:
+                            update_status(f"🌐 Translating to {LANGS[lang]}...")
+                            t_topic = translate(topic, lang)
+                            t_slides = [{"title": translate(s["title"], lang), "content": translate(s["content"], lang)} for s in slides]
+                            
+                            update_status("📊 Building PowerPoint with images...")
+                            ppt = make_pptx(t_slides, t_topic, LANGS[lang], include_images, update_status)
+                            
+                            st.session_state.ppt = ppt
+                            st.session_state.ppt_name = f"{topic.replace(' ', '_')}_shiva_ai.pptx"
+                            st.session_state.ppt_st = "done"
+                            st.rerun()
                     except Exception as e:
-                        st.error(str(e))
+                        st.error(f"Error: {e}")
         
         if st.button("🏠 Back"):
             st.session_state.mode = "chat"
@@ -1135,10 +1007,10 @@ elif st.session_state.mode == "pres":
     
     else:
         st.balloons()
-        st.success("✅ Ready!")
-        st.download_button("📥 Download", st.session_state.ppt, st.session_state.ppt_name, use_container_width=True)
+        st.success("✅ Presentation ready with HD images!")
+        st.download_button("📥 Download PPTX", st.session_state.ppt, st.session_state.ppt_name, use_container_width=True)
         
-        if st.button("🔄 Another"):
+        if st.button("🔄 Create Another"):
             st.session_state.ppt_st = "enter"
             st.rerun()
         if st.button("🏠 Back"):
@@ -1238,7 +1110,6 @@ else:
         with st.chat_message("user"):
             st.markdown(inp)
         
-        # Context
         ctx = ""
         if chat.get("files"):
             ctx = "\n[FILES]\n" + "\n".join([f"[{f['name']}]\n{f['content'][:2000]}" for f in chat["files"]]) + "\n[/FILES]\n\n"
