@@ -458,12 +458,10 @@ def search_pexels_image(query):
         if response.status_code == 200:
             data = response.json()
             if data.get("photos") and len(data["photos"]) > 0:
-                # Try to get the best quality image
                 photo = data["photos"][0]
                 return photo["src"].get("large2x") or photo["src"].get("large") or photo["src"].get("medium")
         return None
-    except Exception as e:
-        st.warning(f"Image search failed: {e}")
+    except Exception:
         return None
 
 
@@ -482,7 +480,6 @@ def download_image(url):
                 from PIL import Image as PILImage
                 img = PILImage.open(img_data)
                 
-                # Convert to RGB if needed
                 if img.mode in ('RGBA', 'P', 'LA'):
                     background = PILImage.new('RGB', img.size, (255, 255, 255))
                     if img.mode == 'P':
@@ -501,7 +498,7 @@ def download_image(url):
                 img_data.seek(0)
                 return img_data
         return None
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -658,7 +655,6 @@ Rules:
         
         if r.status_code == 200:
             c = r.json()["choices"][0]["message"]["content"]
-            # Clean up the response
             if "```json" in c:
                 c = c.split("```json")[1].split("```")[0]
             elif "```" in c:
@@ -669,8 +665,7 @@ Rules:
             if s >= 0 and e > s:
                 return json.loads(c[s:e])
         return []
-    except Exception as e:
-        st.error(f"Slide generation error: {e}")
+    except Exception:
         return []
 
 
@@ -683,10 +678,9 @@ def translate(t, lang):
         return t
 
 
-def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=None):
+def make_pptx(slides, topic, lang_name, include_images=True, status_placeholder=None, progress_bar=None):
     """Create PowerPoint with Pexels images"""
     if not PPTX_OK:
-        st.error("python-pptx not available")
         return None
         
     from pptx import Presentation
@@ -694,21 +688,27 @@ def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=N
     from pptx.dml.color import RGBColor
     from pptx.enum.text import PP_ALIGN
     
+    total_steps = len(slides) + 3
+    current_step = [0]  # Use list to allow modification in nested function
+    
+    def update_progress(msg):
+        current_step[0] += 1
+        if progress_bar:
+            progress_bar.progress(min(current_step[0] / total_steps, 1.0))
+        if status_placeholder:
+            status_placeholder.info(f"⏳ {msg}")
+    
     prs = Presentation()
     prs.slide_width = Inches(13.333)
     prs.slide_height = Inches(7.5)
     
     # ===== TITLE SLIDE =====
-    if progress_callback:
-        progress_callback("Creating title slide...")
+    update_progress("Creating title slide...")
     
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     
-    # Add background image
     title_img_added = False
     if include_images:
-        if progress_callback:
-            progress_callback("🖼️ Finding title image...")
         img_url = search_pexels_image(topic + " professional")
         if img_url:
             img_data = download_image(img_url)
@@ -721,7 +721,7 @@ def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=N
                         height=prs.slide_height
                     )
                     title_img_added = True
-                except Exception as e:
+                except:
                     pass
     
     # Dark overlay
@@ -730,7 +730,6 @@ def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=N
     overlay.fill.fore_color.rgb = RGBColor(0, 0, 0)
     overlay.line.fill.background()
     
-    # Set transparency
     try:
         from pptx.oxml.ns import qn
         from pptx.oxml import parse_xml
@@ -767,8 +766,7 @@ def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=N
     
     # ===== CONTENT SLIDES =====
     for idx, slide_data in enumerate(slides):
-        if progress_callback:
-            progress_callback(f"📊 Creating slide {idx + 1} of {len(slides)}...")
+        update_progress(f"Creating slide {idx + 1} of {len(slides)}...")
         
         content_slide = prs.slides.add_slide(prs.slide_layouts[6])
         
@@ -782,9 +780,6 @@ def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=N
         img_added = False
         if include_images:
             keywords = generate_image_keywords(slide_data.get('title', topic))
-            if progress_callback:
-                progress_callback(f"🖼️ Finding image: {keywords}...")
-            
             img_url = search_pexels_image(keywords)
             if img_url:
                 img_data = download_image(img_url)
@@ -853,12 +848,10 @@ def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=N
             para.space_after = Pt(8)
     
     # ===== THANK YOU SLIDE =====
-    if progress_callback:
-        progress_callback("🎉 Creating thank you slide...")
+    update_progress("Creating thank you slide...")
     
     thank_slide = prs.slides.add_slide(prs.slide_layouts[6])
     
-    # Background image
     if include_images:
         img_url = search_pexels_image("thank you success celebration")
         if img_url:
@@ -911,8 +904,7 @@ def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=N
     q_para.font.color.rgb = RGBColor(180, 180, 180)
     q_para.alignment = PP_ALIGN.CENTER
     
-    if progress_callback:
-        progress_callback(f"✅ Done! Added {images_added} HD images")
+    update_progress(f"Done! Added {images_added} HD images")
     
     # Save
     buf = io.BytesIO()
@@ -931,16 +923,13 @@ def uid():
 
 
 def get_storage_path():
-    """Get the storage file path for this user"""
     return STORAGE / f"{uid()}.pkl"
 
 
 def save():
-    """Save chat history to file"""
     try:
         data_to_save = {}
         for chat_id, chat_data in st.session_state.chats.items():
-            # Create a clean copy without audio data (can't pickle audio files)
             clean_msgs = []
             for msg in chat_data.get("msgs", []):
                 clean_msg = {
@@ -959,21 +948,19 @@ def save():
         with open(get_storage_path(), 'wb') as f:
             pickle.dump(data_to_save, f)
         return True
-    except Exception as e:
+    except Exception:
         return False
 
 
 def load():
-    """Load chat history from file"""
     try:
         p = get_storage_path()
         if p.exists():
             with open(p, 'rb') as f:
                 data = pickle.load(f)
-                # Validate loaded data
                 if isinstance(data, dict) and len(data) > 0:
                     return data
-    except Exception as e:
+    except Exception:
         pass
     return None
 
@@ -999,7 +986,7 @@ def new_chat():
         "created": datetime.now().strftime("%Y-%m-%d %H:%M")
     }
     st.session_state.cid = nid
-    save()  # Save immediately after creating new chat
+    save()
     return nid
 
 
@@ -1008,7 +995,7 @@ def del_chat(sid):
         del st.session_state.chats[sid]
         if sid == st.session_state.cid:
             st.session_state.cid = list(st.session_state.chats.keys())[0]
-        save()  # Save after deleting
+        save()
         return True
     return False
 
@@ -1036,7 +1023,6 @@ for k, v in [("mode", "chat"), ("ppt_st", "enter"), ("fc_st", "enter"), ("cards"
     if k not in st.session_state:
         st.session_state[k] = v
 
-# Load chats - FIXED
 if "chats" not in st.session_state:
     loaded_data = load()
     if loaded_data and isinstance(loaded_data, dict) and len(loaded_data) > 0:
@@ -1061,7 +1047,6 @@ with st.sidebar:
     st.markdown("*By Shivansh Mahajan*")
     st.markdown("---")
     
-    # Model Selection - FIXED description for Shiva0.1
     st.markdown("### 🧠 Model")
     
     if st.session_state.model == "shiva01":
@@ -1188,24 +1173,15 @@ elif st.session_state.mode == "pres":
                 status_container = st.empty()
                 progress_bar = st.progress(0)
                 
-                total_steps = n + 4  # title + n slides + thank you + saving
-                current_step = 0
-                
-                def update_status(msg):
-                    nonlocal current_step
-                    current_step += 1
-                    progress_bar.progress(min(current_step / total_steps, 1.0))
-                    status_container.info(f"⏳ {msg}")
-                
                 try:
-                    update_status("🤖 Generating slide content with AI...")
+                    status_container.info("🤖 Generating slide content with AI...")
                     slides = make_pres(topic, n)
                     
                     if not slides:
                         status_container.error("❌ Failed to generate slides. Please try again.")
                         progress_bar.empty()
                     else:
-                        update_status(f"🌐 Translating to {LANGS[lang]}...")
+                        status_container.info(f"🌐 Translating to {LANGS[lang]}...")
                         t_topic = translate(topic, lang)
                         t_slides = []
                         for s in slides:
@@ -1214,8 +1190,8 @@ elif st.session_state.mode == "pres":
                                 "content": translate(s.get("content", ""), lang)
                             })
                         
-                        update_status("📊 Building PowerPoint presentation...")
-                        ppt = make_pptx(t_slides, t_topic, LANGS[lang], include_images, update_status)
+                        status_container.info("📊 Building PowerPoint presentation...")
+                        ppt = make_pptx(t_slides, t_topic, LANGS[lang], include_images, status_container, progress_bar)
                         
                         if ppt:
                             st.session_state.ppt = ppt
@@ -1266,7 +1242,6 @@ elif st.session_state.mode == "pres":
 else:
     chat = st.session_state.chats.get(st.session_state.cid)
     
-    # Safety check
     if not chat:
         new_chat()
         st.rerun()
@@ -1386,7 +1361,7 @@ else:
             ph.markdown(resp)
             aud = speak(resp) if TTS_OK else None
             chat["msgs"].append({"role": "assistant", "content": resp, "audio": aud})
-            save()  # Save after each message
+            save()
             if aud:
                 st.audio(aud)
             st.rerun()
