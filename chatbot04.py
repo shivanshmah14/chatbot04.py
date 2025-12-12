@@ -101,7 +101,7 @@ st.set_page_config(
 )
 
 # ----------------------
-# 100% WHITE UI CSS
+# 100% WHITE UI CSS with FIXED Slider & Checkbox
 # ----------------------
 st.markdown("""
 <style>
@@ -214,11 +214,114 @@ st.markdown("""
         color: #000000 !important;
     }
     
-    /* Slider, Checkbox */
-    .stSlider, .stSlider *, .stCheckbox, .stCheckbox * {
+    /* ============================================ */
+    /* FIXED SLIDER - Visible Track & Thumb */
+    /* ============================================ */
+    .stSlider {
         background-color: #ffffff !important;
+        padding: 10px 0 !important;
+    }
+    
+    .stSlider label, .stSlider p, .stSlider span {
+        color: #000000 !important;
+        background-color: transparent !important;
+    }
+    
+    /* Slider Track Background (the line) */
+    .stSlider [data-baseweb="slider"] > div {
+        background-color: transparent !important;
+    }
+    
+    .stSlider [data-baseweb="slider"] > div > div:first-child {
+        background-color: #e0e0e0 !important;
+        height: 8px !important;
+        border-radius: 4px !important;
+    }
+    
+    /* Slider Active Track (filled part) */
+    .stSlider [data-baseweb="slider"] > div > div:first-child > div {
+        background-color: #2196F3 !important;
+        background: linear-gradient(90deg, #2196F3, #1976D2) !important;
+        height: 8px !important;
+        border-radius: 4px !important;
+    }
+    
+    /* Slider Thumb (the draggable circle) */
+    .stSlider [data-baseweb="slider"] [role="slider"] {
+        background-color: #2196F3 !important;
+        border: 3px solid #ffffff !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+        width: 20px !important;
+        height: 20px !important;
+        border-radius: 50% !important;
+    }
+    
+    .stSlider [data-baseweb="slider"] [role="slider"]:hover {
+        background-color: #1976D2 !important;
+        transform: scale(1.1) !important;
+    }
+    
+    /* Slider Value Display */
+    .stSlider [data-testid="stTickBar"] {
+        background-color: transparent !important;
+    }
+    
+    .stSlider > div > div > div > div:last-child {
         color: #000000 !important;
     }
+    
+    /* ============================================ */
+    /* FIXED CHECKBOX - Red Tick When Checked */
+    /* ============================================ */
+    .stCheckbox {
+        background-color: #ffffff !important;
+    }
+    
+    .stCheckbox label {
+        color: #000000 !important;
+        background-color: transparent !important;
+    }
+    
+    .stCheckbox label span {
+        color: #000000 !important;
+    }
+    
+    /* Unchecked checkbox box */
+    .stCheckbox [data-testid="stCheckbox"] > label > div:first-child {
+        background-color: #ffffff !important;
+        border: 2px solid #cccccc !important;
+        border-radius: 4px !important;
+        width: 22px !important;
+        height: 22px !important;
+    }
+    
+    /* Checked checkbox - RED background with white tick */
+    .stCheckbox [data-testid="stCheckbox"] > label > div[aria-checked="true"]:first-child,
+    .stCheckbox input[type="checkbox"]:checked + div,
+    [data-testid="stCheckbox"] [aria-checked="true"] {
+        background-color: #e74c3c !important;
+        border-color: #e74c3c !important;
+    }
+    
+    /* The tick/checkmark icon - WHITE */
+    .stCheckbox [data-testid="stCheckbox"] > label > div:first-child svg {
+        stroke: #ffffff !important;
+        fill: #ffffff !important;
+    }
+    
+    .stCheckbox [data-testid="stCheckbox"] > label > div[aria-checked="true"]:first-child svg,
+    [data-testid="stCheckbox"] [aria-checked="true"] svg {
+        stroke: #ffffff !important;
+        fill: #ffffff !important;
+        color: #ffffff !important;
+    }
+    
+    /* Checkbox label text */
+    .stCheckbox [data-testid="stCheckbox"] > label > div:last-child {
+        color: #000000 !important;
+    }
+    
+    /* ============================================ */
     
     /* Alerts */
     .stAlert, [data-testid="stAlert"], .stAlert * {
@@ -285,6 +388,11 @@ st.markdown("""
     
     hr { border-color: #e0e0e0 !important; }
     
+    /* Progress bar */
+    .stProgress > div > div {
+        background-color: #2196F3 !important;
+    }
+    
     @media (max-width: 768px) {
         .main .block-container { padding: 1rem 0.5rem !important; }
         .stButton > button { min-height: 50px !important; }
@@ -310,7 +418,7 @@ st.markdown("""
 # ----------------------
 # API Config
 # ----------------------
-# Shiva0.1 = Sarvam
+# Shiva0.1 = Sarvam (Good for Math)
 SARVAM_KEY = os.getenv("CHATBOT_API_KEY", "sk_h4gsam68_z6e2xo8u9aaleUaBshwjVyDk")
 SARVAM_URL = "https://api.sarvam.ai/v1/chat/completions"
 
@@ -340,27 +448,32 @@ def search_pexels_image(query):
         headers = {"Authorization": PEXELS_API_KEY}
         params = {
             "query": query,
-            "per_page": 1,
+            "per_page": 3,
             "orientation": "landscape",
             "size": "large"
         }
         
-        response = requests.get(url, headers=headers, params=params, timeout=10)
+        response = requests.get(url, headers=headers, params=params, timeout=15)
         
         if response.status_code == 200:
             data = response.json()
             if data.get("photos") and len(data["photos"]) > 0:
-                return data["photos"][0]["src"].get("large") or data["photos"][0]["src"].get("medium")
+                # Try to get the best quality image
+                photo = data["photos"][0]
+                return photo["src"].get("large2x") or photo["src"].get("large") or photo["src"].get("medium")
         return None
-    except Exception:
+    except Exception as e:
+        st.warning(f"Image search failed: {e}")
         return None
 
 
 def download_image(url):
     """Download image from URL and return as BytesIO."""
     try:
-        headers = {"User-Agent": "Mozilla/5.0"}
-        response = requests.get(url, headers=headers, timeout=15)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        }
+        response = requests.get(url, headers=headers, timeout=20)
         
         if response.status_code == 200:
             img_data = io.BytesIO(response.content)
@@ -369,18 +482,26 @@ def download_image(url):
                 from PIL import Image as PILImage
                 img = PILImage.open(img_data)
                 
-                if img.mode in ('RGBA', 'P'):
-                    img = img.convert('RGB')
+                # Convert to RGB if needed
+                if img.mode in ('RGBA', 'P', 'LA'):
+                    background = PILImage.new('RGB', img.size, (255, 255, 255))
+                    if img.mode == 'P':
+                        img = img.convert('RGBA')
+                    if 'A' in img.mode:
+                        background.paste(img, mask=img.split()[-1])
+                        img = background
+                    else:
+                        img = img.convert('RGB')
                 
                 output = io.BytesIO()
-                img.save(output, format='JPEG', quality=90)
+                img.save(output, format='JPEG', quality=95)
                 output.seek(0)
                 return output
             else:
                 img_data.seek(0)
                 return img_data
         return None
-    except Exception:
+    except Exception as e:
         return None
 
 
@@ -391,14 +512,15 @@ def generate_image_keywords(title):
         'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
         'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
         'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need',
-        'introduction', 'conclusion', 'overview', 'summary', 'key', 'points'
+        'introduction', 'conclusion', 'overview', 'summary', 'key', 'points',
+        'what', 'why', 'how', 'when', 'where', 'which', 'who'
     }
     
     words = title.lower().split()
     keywords = [w for w in words if w not in stop_words and len(w) > 2]
     
     if keywords:
-        return ' '.join(keywords[:3])
+        return ' '.join(keywords[:4])
     return title
 
 
@@ -427,7 +549,7 @@ def transcribe(audio):
 
 
 def ai_shiva01(msgs):
-    """Shiva0.1 = Sarvam"""
+    """Shiva0.1 = Sarvam (Good for Math)"""
     try:
         r = requests.post(SARVAM_URL, headers={"Authorization": f"Bearer {SARVAM_KEY}", "Content-Type": "application/json"},
                          json={"model": "sarvam-m", "messages": msgs, "max_tokens": 4096}, timeout=120)
@@ -516,18 +638,39 @@ def cards_pdf(cards):
 
 def make_pres(topic, n):
     """Generate presentation content using Shiva0.1"""
-    prompt = f"""You are an expert. Generate {n} slides for '{topic}'.
-Return ONLY a JSON array: [{{"title":"...", "content":"bullet1\\nbullet2\\nbullet3"}}]
-No markdown, no extra text."""
+    prompt = f"""You are an expert presentation creator. Generate exactly {n} slides for the topic: '{topic}'.
+
+Return ONLY a valid JSON array with this exact format:
+[
+  {{"title": "Slide Title 1", "content": "Point 1\\nPoint 2\\nPoint 3"}},
+  {{"title": "Slide Title 2", "content": "Point 1\\nPoint 2\\nPoint 3"}}
+]
+
+Rules:
+- Each slide must have a "title" and "content" field
+- Content should have 3-5 bullet points separated by \\n
+- No markdown, no extra text, ONLY the JSON array
+- Make content informative and professional"""
+
     try:
         r = requests.post(SARVAM_URL, headers={"Authorization": f"Bearer {PRES_KEY}", "Content-Type": "application/json"},
                          json={"model": "sarvam-m", "messages": [{"role": "user", "content": prompt}], "max_tokens": 4096}, timeout=120)
-        c = r.json()["choices"][0]["message"]["content"]
-        if "```" in c:
-            c = c.split("```")[1].replace("json", "")
-        s, e = c.find("["), c.rfind("]") + 1
-        return json.loads(c[s:e]) if s >= 0 else []
-    except:
+        
+        if r.status_code == 200:
+            c = r.json()["choices"][0]["message"]["content"]
+            # Clean up the response
+            if "```json" in c:
+                c = c.split("```json")[1].split("```")[0]
+            elif "```" in c:
+                c = c.split("```")[1].split("```")[0]
+            
+            c = c.strip()
+            s, e = c.find("["), c.rfind("]") + 1
+            if s >= 0 and e > s:
+                return json.loads(c[s:e])
+        return []
+    except Exception as e:
+        st.error(f"Slide generation error: {e}")
         return []
 
 
@@ -542,6 +685,10 @@ def translate(t, lang):
 
 def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=None):
     """Create PowerPoint with Pexels images"""
+    if not PPTX_OK:
+        st.error("python-pptx not available")
+        return None
+        
     from pptx import Presentation
     from pptx.util import Inches, Pt
     from pptx.dml.color import RGBColor
@@ -558,10 +705,11 @@ def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=N
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     
     # Add background image
+    title_img_added = False
     if include_images:
         if progress_callback:
-            progress_callback("Finding title image...")
-        img_url = search_pexels_image(topic)
+            progress_callback("🖼️ Finding title image...")
+        img_url = search_pexels_image(topic + " professional")
         if img_url:
             img_data = download_image(img_url)
             if img_data:
@@ -572,7 +720,8 @@ def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=N
                         width=prs.slide_width, 
                         height=prs.slide_height
                     )
-                except:
+                    title_img_added = True
+                except Exception as e:
                     pass
     
     # Dark overlay
@@ -614,19 +763,27 @@ def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=N
     sub_para.font.color.rgb = RGBColor(200, 200, 200)
     sub_para.alignment = PP_ALIGN.CENTER
     
+    images_added = 1 if title_img_added else 0
+    
     # ===== CONTENT SLIDES =====
     for idx, slide_data in enumerate(slides):
         if progress_callback:
-            progress_callback(f"Creating slide {idx + 1} of {len(slides)}...")
+            progress_callback(f"📊 Creating slide {idx + 1} of {len(slides)}...")
         
         content_slide = prs.slides.add_slide(prs.slide_layouts[6])
+        
+        # White background
+        bg = content_slide.shapes.add_shape(1, Inches(0), Inches(0), prs.slide_width, prs.slide_height)
+        bg.fill.solid()
+        bg.fill.fore_color.rgb = RGBColor(255, 255, 255)
+        bg.line.fill.background()
         
         # Add image on right side
         img_added = False
         if include_images:
-            keywords = generate_image_keywords(slide_data['title'])
+            keywords = generate_image_keywords(slide_data.get('title', topic))
             if progress_callback:
-                progress_callback(f"Finding image for: {keywords}...")
+                progress_callback(f"🖼️ Finding image: {keywords}...")
             
             img_url = search_pexels_image(keywords)
             if img_url:
@@ -635,11 +792,12 @@ def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=N
                     try:
                         content_slide.shapes.add_picture(
                             img_data,
-                            Inches(7.0), Inches(0),
-                            width=Inches(6.333),
-                            height=prs.slide_height
+                            Inches(7.0), Inches(0.5),
+                            width=Inches(5.8),
+                            height=Inches(6.5)
                         )
                         img_added = True
+                        images_added += 1
                     except:
                         pass
         
@@ -650,51 +808,53 @@ def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=N
         left_bar.line.fill.background()
         
         # Slide title
-        title_width = Inches(6.0) if img_added else Inches(12)
-        title_box = content_slide.shapes.add_textbox(Inches(0.4), Inches(0.5), title_width, Inches(1))
+        title_width = Inches(6.3) if img_added else Inches(12.5)
+        title_box = content_slide.shapes.add_textbox(Inches(0.4), Inches(0.4), title_width, Inches(1))
         title_frame = title_box.text_frame
         title_frame.word_wrap = True
         title_para = title_frame.paragraphs[0]
-        title_para.text = slide_data['title']
+        title_para.text = slide_data.get('title', f'Slide {idx + 1}')
         title_para.font.size = Pt(36)
         title_para.font.bold = True
         title_para.font.color.rgb = RGBColor(0, 0, 0)
         
         # Underline
-        underline = content_slide.shapes.add_shape(1, Inches(0.4), Inches(1.4), Inches(2), Inches(0.04))
+        underline = content_slide.shapes.add_shape(1, Inches(0.4), Inches(1.3), Inches(2.5), Inches(0.05))
         underline.fill.solid()
         underline.fill.fore_color.rgb = RGBColor(0, 120, 215)
         underline.line.fill.background()
         
         # Content
-        content_width = Inches(6.0) if img_added else Inches(12)
-        content_box = content_slide.shapes.add_textbox(Inches(0.4), Inches(1.7), content_width, Inches(5.3))
+        content_width = Inches(6.3) if img_added else Inches(12.5)
+        content_box = content_slide.shapes.add_textbox(Inches(0.4), Inches(1.6), content_width, Inches(5.5))
         content_frame = content_box.text_frame
         content_frame.word_wrap = True
         
         content_text = slide_data.get('content', '')
         content_lines = content_text.split('\n')
         
-        for i, line in enumerate(content_lines):
+        first_line = True
+        for line in content_lines:
             line = line.strip()
             if not line:
                 continue
             line = line.lstrip('•-*●→▪ ')
             
-            if i == 0:
+            if first_line:
                 para = content_frame.paragraphs[0]
+                first_line = False
             else:
                 para = content_frame.add_paragraph()
             
             para.text = f"● {line}"
             para.font.size = Pt(20)
             para.font.color.rgb = RGBColor(50, 50, 50)
-            para.space_before = Pt(12)
-            para.space_after = Pt(6)
+            para.space_before = Pt(14)
+            para.space_after = Pt(8)
     
     # ===== THANK YOU SLIDE =====
     if progress_callback:
-        progress_callback("Creating thank you slide...")
+        progress_callback("🎉 Creating thank you slide...")
     
     thank_slide = prs.slides.add_slide(prs.slide_layouts[6])
     
@@ -711,6 +871,7 @@ def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=N
                         width=prs.slide_width,
                         height=prs.slide_height
                     )
+                    images_added += 1
                 except:
                     pass
     
@@ -750,6 +911,9 @@ def make_pptx(slides, topic, lang_name, include_images=True, progress_callback=N
     q_para.font.color.rgb = RGBColor(180, 180, 180)
     q_para.alignment = PP_ALIGN.CENTER
     
+    if progress_callback:
+        progress_callback(f"✅ Done! Added {images_added} HD images")
+    
     # Save
     buf = io.BytesIO()
     prs.save(buf)
@@ -766,21 +930,50 @@ def uid():
     return st.session_state.uid
 
 
+def get_storage_path():
+    """Get the storage file path for this user"""
+    return STORAGE / f"{uid()}.pkl"
+
+
 def save():
+    """Save chat history to file"""
     try:
-        with open(STORAGE / f"{uid()}.pkl", 'wb') as f:
-            pickle.dump({k: {x: y for x, y in v.items() if x != "audio"} for k, v in st.session_state.chats.items()}, f)
-    except:
-        pass
+        data_to_save = {}
+        for chat_id, chat_data in st.session_state.chats.items():
+            # Create a clean copy without audio data (can't pickle audio files)
+            clean_msgs = []
+            for msg in chat_data.get("msgs", []):
+                clean_msg = {
+                    "role": msg.get("role"),
+                    "content": msg.get("content")
+                }
+                clean_msgs.append(clean_msg)
+            
+            data_to_save[chat_id] = {
+                "msgs": clean_msgs,
+                "files": chat_data.get("files", []),
+                "title": chat_data.get("title", "New Chat"),
+                "created": chat_data.get("created", datetime.now().strftime("%Y-%m-%d %H:%M"))
+            }
+        
+        with open(get_storage_path(), 'wb') as f:
+            pickle.dump(data_to_save, f)
+        return True
+    except Exception as e:
+        return False
 
 
 def load():
+    """Load chat history from file"""
     try:
-        p = STORAGE / f"{uid()}.pkl"
+        p = get_storage_path()
         if p.exists():
             with open(p, 'rb') as f:
-                return pickle.load(f)
-    except:
+                data = pickle.load(f)
+                # Validate loaded data
+                if isinstance(data, dict) and len(data) > 0:
+                    return data
+    except Exception as e:
         pass
     return None
 
@@ -799,9 +992,15 @@ def speak(t):
 
 def new_chat():
     nid = str(uuid.uuid4())
-    st.session_state.chats[nid] = {"msgs": [{"role": "system", "content": SYSTEM}], "files": [], "title": "New Chat", "created": datetime.now().strftime("%Y-%m-%d %H:%M")}
+    st.session_state.chats[nid] = {
+        "msgs": [{"role": "system", "content": SYSTEM}],
+        "files": [],
+        "title": "New Chat",
+        "created": datetime.now().strftime("%Y-%m-%d %H:%M")
+    }
     st.session_state.cid = nid
-    save()
+    save()  # Save immediately after creating new chat
+    return nid
 
 
 def del_chat(sid):
@@ -809,7 +1008,7 @@ def del_chat(sid):
         del st.session_state.chats[sid]
         if sid == st.session_state.cid:
             st.session_state.cid = list(st.session_state.chats.keys())[0]
-        save()
+        save()  # Save after deleting
         return True
     return False
 
@@ -837,17 +1036,21 @@ for k, v in [("mode", "chat"), ("ppt_st", "enter"), ("fc_st", "enter"), ("cards"
     if k not in st.session_state:
         st.session_state[k] = v
 
+# Load chats - FIXED
 if "chats" not in st.session_state:
-    ld = load()
-    if ld:
-        st.session_state.chats = ld
-        st.session_state.cid = list(ld.keys())[0]
+    loaded_data = load()
+    if loaded_data and isinstance(loaded_data, dict) and len(loaded_data) > 0:
+        st.session_state.chats = loaded_data
+        st.session_state.cid = list(loaded_data.keys())[0]
     else:
         st.session_state.chats = {}
         new_chat()
 
-if "cid" not in st.session_state:
-    st.session_state.cid = list(st.session_state.chats.keys())[0]
+if "cid" not in st.session_state or st.session_state.cid not in st.session_state.chats:
+    if st.session_state.chats:
+        st.session_state.cid = list(st.session_state.chats.keys())[0]
+    else:
+        new_chat()
 
 
 # ----------------------
@@ -858,11 +1061,11 @@ with st.sidebar:
     st.markdown("*By Shivansh Mahajan*")
     st.markdown("---")
     
-    # Model Selection
+    # Model Selection - FIXED description for Shiva0.1
     st.markdown("### 🧠 Model")
     
     if st.session_state.model == "shiva01":
-        st.markdown('<div class="model-box shiva01"><p class="model-name">🔱 Shiva0.1</p><p class="model-desc">Sarvam - Good for Hindi</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="model-box shiva01"><p class="model-name">🔱 Shiva0.1</p><p class="model-desc">Good for Mathematical Calculations</p></div>', unsafe_allow_html=True)
         if st.button("🔄 Switch to Shiva0.2", use_container_width=True):
             st.session_state.model = "shiva02"
             st.rerun()
@@ -893,9 +1096,12 @@ with st.sidebar:
     
     if st.session_state.mode == "chat":
         st.markdown("### 💬 Chats")
+        chat_count = len(st.session_state.chats)
+        st.caption(f"{chat_count} conversation(s)")
+        
         for sid, s in sorted(st.session_state.chats.items(), key=lambda x: x[1].get("created", ""), reverse=True):
             c1, c2 = st.columns([5, 1])
-            lbl = ("▶ " if sid == st.session_state.cid else "") + s["title"][:20]
+            lbl = ("▶ " if sid == st.session_state.cid else "") + s.get("title", "New Chat")[:20]
             if c1.button(lbl, key=f"c_{sid}", use_container_width=True):
                 st.session_state.cid = sid
                 st.rerun()
@@ -916,18 +1122,20 @@ if st.session_state.mode == "flash":
     
     if st.session_state.fc_st == "enter":
         txt = st.text_area("📝 Text:", height=180)
-        num = st.slider("Cards", 5, 20, 10)
+        num = st.slider("Number of Cards", 5, 20, 10)
         
         if st.button("🚀 Generate", type="primary", use_container_width=True):
             if txt and len(txt) >= 50:
-                with st.spinner("Creating..."):
+                with st.spinner("Creating flashcards..."):
                     cards = make_flashcards(txt, num)
                     if cards:
                         st.session_state.cards = cards
                         st.session_state.fc_st = "view"
                         st.rerun()
+                    else:
+                        st.error("Failed to generate flashcards. Try again.")
             else:
-                st.error("Need 50+ characters")
+                st.error("Need at least 50 characters")
         
         if st.button("🏠 Back"):
             st.session_state.mode = "chat"
@@ -935,10 +1143,10 @@ if st.session_state.mode == "flash":
     
     else:
         cards = st.session_state.cards
-        st.success(f"✅ {len(cards)} cards!")
+        st.success(f"✅ {len(cards)} flashcards created!")
         
         for i, c in enumerate(cards, 1):
-            with st.expander(f"{i}. {c.get('front', '')[:40]}..."):
+            with st.expander(f"{i}. {c.get('front', '')[:50]}..."):
                 st.info(f"**Q:** {c.get('front', '')}")
                 st.success(f"**A:** {c.get('back', '')}")
         
@@ -952,7 +1160,7 @@ if st.session_state.mode == "flash":
         if p:
             c3.download_button("📕 PDF", p, "cards.pdf", use_container_width=True)
         
-        if st.button("🔄 More"):
+        if st.button("🔄 Create More"):
             st.session_state.fc_st = "enter"
             st.rerun()
         if st.button("🏠 Back"):
@@ -963,43 +1171,68 @@ if st.session_state.mode == "flash":
 # PRESENTATION
 elif st.session_state.mode == "pres":
     st.markdown("# 📊 Presentation Generator")
-    st.markdown("*Made by Shiva AI with HD Images*")
+    st.markdown("*Made by Shiva AI with HD Images from Pexels*")
     st.markdown("---")
     
     if st.session_state.ppt_st == "enter":
         topic = st.text_input("📝 Topic:")
         lang = st.selectbox("🌐 Language", list(LANGS.keys()), format_func=lambda x: LANGS[x])
-        n = st.slider("📊 Slides", 3, 10, 5)
+        n = st.slider("📊 Number of Slides", 3, 10, 5)
         include_images = st.checkbox("🖼️ Include HD images from Pexels", value=True)
         
+        if include_images:
+            st.info("🖼️ HD images will be fetched from Pexels for each slide. This may take a moment.")
+        
         if st.button("🚀 Create Presentation", type="primary", use_container_width=True):
-            if topic:
-                status_text = st.empty()
+            if topic and len(topic.strip()) > 2:
+                status_container = st.empty()
+                progress_bar = st.progress(0)
+                
+                total_steps = n + 4  # title + n slides + thank you + saving
+                current_step = 0
                 
                 def update_status(msg):
-                    status_text.info(msg)
+                    nonlocal current_step
+                    current_step += 1
+                    progress_bar.progress(min(current_step / total_steps, 1.0))
+                    status_container.info(f"⏳ {msg}")
                 
-                with st.spinner("Creating presentation..."):
-                    try:
-                        update_status("🤖 Generating content...")
-                        slides = make_pres(topic, n)
+                try:
+                    update_status("🤖 Generating slide content with AI...")
+                    slides = make_pres(topic, n)
+                    
+                    if not slides:
+                        status_container.error("❌ Failed to generate slides. Please try again.")
+                        progress_bar.empty()
+                    else:
+                        update_status(f"🌐 Translating to {LANGS[lang]}...")
+                        t_topic = translate(topic, lang)
+                        t_slides = []
+                        for s in slides:
+                            t_slides.append({
+                                "title": translate(s.get("title", ""), lang),
+                                "content": translate(s.get("content", ""), lang)
+                            })
                         
-                        if not slides:
-                            st.error("Failed to generate slides. Try again.")
-                        else:
-                            update_status(f"🌐 Translating to {LANGS[lang]}...")
-                            t_topic = translate(topic, lang)
-                            t_slides = [{"title": translate(s["title"], lang), "content": translate(s["content"], lang)} for s in slides]
-                            
-                            update_status("📊 Building PowerPoint with images...")
-                            ppt = make_pptx(t_slides, t_topic, LANGS[lang], include_images, update_status)
-                            
+                        update_status("📊 Building PowerPoint presentation...")
+                        ppt = make_pptx(t_slides, t_topic, LANGS[lang], include_images, update_status)
+                        
+                        if ppt:
                             st.session_state.ppt = ppt
                             st.session_state.ppt_name = f"{topic.replace(' ', '_')}_shiva_ai.pptx"
                             st.session_state.ppt_st = "done"
+                            progress_bar.progress(1.0)
+                            status_container.success("✅ Presentation ready!")
                             st.rerun()
-                    except Exception as e:
-                        st.error(f"Error: {e}")
+                        else:
+                            status_container.error("❌ Failed to create PowerPoint. Please try again.")
+                            progress_bar.empty()
+                            
+                except Exception as e:
+                    status_container.error(f"❌ Error: {e}")
+                    progress_bar.empty()
+            else:
+                st.warning("⚠️ Please enter a topic")
         
         if st.button("🏠 Back"):
             st.session_state.mode = "chat"
@@ -1008,39 +1241,58 @@ elif st.session_state.mode == "pres":
     else:
         st.balloons()
         st.success("✅ Presentation ready with HD images!")
-        st.download_button("📥 Download PPTX", st.session_state.ppt, st.session_state.ppt_name, use_container_width=True)
+        st.markdown("### 📥 Download your presentation")
         
-        if st.button("🔄 Create Another"):
-            st.session_state.ppt_st = "enter"
-            st.rerun()
-        if st.button("🏠 Back"):
-            st.session_state.mode = "chat"
-            st.rerun()
+        st.download_button(
+            "📥 Download PPTX",
+            st.session_state.ppt,
+            st.session_state.ppt_name,
+            mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            use_container_width=True
+        )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🔄 Create Another", use_container_width=True):
+                st.session_state.ppt_st = "enter"
+                st.rerun()
+        with col2:
+            if st.button("🏠 Back to Chat", use_container_width=True):
+                st.session_state.mode = "chat"
+                st.rerun()
 
 
 # CHAT
 else:
-    chat = st.session_state.chats[st.session_state.cid]
+    chat = st.session_state.chats.get(st.session_state.cid)
+    
+    # Safety check
+    if not chat:
+        new_chat()
+        st.rerun()
     
     # Badge
     if st.session_state.model == "shiva01":
-        st.markdown('<span class="chat-badge b01">🔱 Shiva0.1</span>', unsafe_allow_html=True)
+        st.markdown('<span class="chat-badge b01">🔱 Shiva0.1 (Math)</span>', unsafe_allow_html=True)
     else:
-        st.markdown('<span class="chat-badge b02">🚀 Shiva0.2</span>', unsafe_allow_html=True)
+        st.markdown('<span class="chat-badge b02">🚀 Shiva0.2 (Fast)</span>', unsafe_allow_html=True)
     
     # Messages
-    user_msgs = [m for m in chat["msgs"] if m["role"] == "user"]
+    user_msgs = [m for m in chat.get("msgs", []) if m.get("role") == "user"]
     
     if not user_msgs:
         st.markdown('<div class="welcome-box"><h1 class="welcome-title">🔱 How can Shiva AI help?</h1></div>', unsafe_allow_html=True)
     else:
-        for m in chat["msgs"]:
-            if m["role"] == "system":
+        for m in chat.get("msgs", []):
+            if m.get("role") == "system":
                 continue
-            with st.chat_message(m["role"]):
-                st.markdown(m["content"])
-                if m["role"] == "assistant" and m.get("audio"):
-                    st.audio(m["audio"])
+            with st.chat_message(m.get("role", "user")):
+                st.markdown(m.get("content", ""))
+                if m.get("role") == "assistant" and m.get("audio"):
+                    try:
+                        st.audio(m["audio"])
+                    except:
+                        pass
     
     st.markdown("---")
     
@@ -1052,18 +1304,19 @@ else:
             aud = audio_recorder(text="", recording_color="#e74c3c", neutral_color="#2196F3", icon_size="2x")
         with c2:
             if aud:
-                with st.spinner("Processing..."):
+                with st.spinner("Processing voice..."):
                     txt, err = transcribe(aud)
                     if txt:
                         st.success(f"📝 {txt}")
-                        if st.button("📤 Send"):
-                            if chat["title"] == "New Chat":
+                        if st.button("📤 Send Voice Message"):
+                            if chat.get("title") == "New Chat":
                                 chat["title"] = txt[:25] + "..."
                             chat["msgs"].append({"role": "user", "content": txt})
                             save()
-                            msgs = [{"role": "system", "content": SYSTEM}] + [{"role": m["role"], "content": m["content"]} for m in chat["msgs"][-10:] if m["role"] in ["user", "assistant"]]
+                            msgs = [{"role": "system", "content": SYSTEM}] + [{"role": m["role"], "content": m["content"]} for m in chat["msgs"][-10:] if m.get("role") in ["user", "assistant"]]
                             resp = ai_response(msgs, st.session_state.model)
-                            chat["msgs"].append({"role": "assistant", "content": resp, "audio": speak(resp)})
+                            aud_file = speak(resp) if TTS_OK else None
+                            chat["msgs"].append({"role": "assistant", "content": resp, "audio": aud_file})
                             save()
                             st.rerun()
                     elif err:
@@ -1071,7 +1324,7 @@ else:
         st.markdown("---")
     
     # Files
-    files = st.file_uploader("📎 Files", accept_multiple_files=True, type=['pdf', 'docx', 'txt', 'py', 'json', 'md'])
+    files = st.file_uploader("📎 Upload Files", accept_multiple_files=True, type=['pdf', 'docx', 'txt', 'py', 'json', 'md'])
     
     if files:
         names = [f.name for f in files]
@@ -1082,17 +1335,18 @@ else:
                 content = extract(data, f.name)
                 if "files" not in chat:
                     chat["files"] = []
-                if not any(x["name"] == f.name for x in chat["files"]):
+                if not any(x.get("name") == f.name for x in chat.get("files", [])):
                     chat["files"].append({"name": f.name, "content": content, "size": len(data)})
             save()
             st.rerun()
     
     if chat.get("files"):
+        st.markdown("**Attached Files:**")
         for i, f in enumerate(chat["files"]):
             c1, c2 = st.columns([6, 1])
-            c1.write(f"📎 {f['name']}")
+            c1.write(f"📎 {f.get('name', 'file')}")
             if c2.button("❌", key=f"rf_{i}"):
-                chat["files"] = [x for x in chat["files"] if x["name"] != f["name"]]
+                chat["files"] = [x for x in chat["files"] if x.get("name") != f.get("name")]
                 save()
                 st.rerun()
         st.markdown("---")
@@ -1101,7 +1355,7 @@ else:
     inp = st.chat_input("Ask Shiva AI...")
     
     if inp:
-        if chat["title"] == "New Chat":
+        if chat.get("title") == "New Chat":
             chat["title"] = inp[:25] + "..."
         
         chat["msgs"].append({"role": "user", "content": inp})
@@ -1112,7 +1366,7 @@ else:
         
         ctx = ""
         if chat.get("files"):
-            ctx = "\n[FILES]\n" + "\n".join([f"[{f['name']}]\n{f['content'][:2000]}" for f in chat["files"]]) + "\n[/FILES]\n\n"
+            ctx = "\n[FILES]\n" + "\n".join([f"[{f.get('name', 'file')}]\n{f.get('content', '')[:2000]}" for f in chat["files"]]) + "\n[/FILES]\n\n"
         
         with st.chat_message("assistant"):
             ph = st.empty()
@@ -1121,9 +1375,9 @@ else:
             
             try:
                 msgs = [{"role": "system", "content": SYSTEM}]
-                recent = [m for m in chat["msgs"] if m["role"] in ["user", "assistant"]][-10:]
+                recent = [m for m in chat.get("msgs", []) if m.get("role") in ["user", "assistant"]][-10:]
                 for m in recent[:-1]:
-                    msgs.append({"role": m["role"], "content": m["content"][:2000]})
+                    msgs.append({"role": m["role"], "content": m.get("content", "")[:2000]})
                 msgs.append({"role": "user", "content": ctx + inp if ctx else inp})
                 resp = ai_response(msgs, st.session_state.model)
             except Exception as e:
@@ -1132,7 +1386,7 @@ else:
             ph.markdown(resp)
             aud = speak(resp) if TTS_OK else None
             chat["msgs"].append({"role": "assistant", "content": resp, "audio": aud})
-            save()
+            save()  # Save after each message
             if aud:
                 st.audio(aud)
             st.rerun()
